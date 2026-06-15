@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Models\ChatLog;
 
 
@@ -108,6 +109,20 @@ Route::get('/my-dashboard', function () {
 
     return view('dashboard', compact('user', 'points', 'badge', 'chartLabels', 'chartData'));
 })->middleware('auth'); // <-- Protects this route so only logged-in users can see it
+
+// New Page Routes
+Route::get('/noor-ai', function () {
+    return view('noor-ai');
+})->middleware('auth');
+
+Route::get('/tracker', function () {
+    return view('layouts.app'); // Temporary placeholder
+})->middleware('auth');
+
+Route::get('/lms', function () {
+    return view('layouts.app'); // Temporary placeholder
+})->middleware('auth');
+
 // Noor AI Web Chat Route
 Route::post('/web-chat', function (Request $request) {
     $request->validate(['message' => 'required|string']);
@@ -144,3 +159,8 @@ Route::post('/web-chat', function (Request $request) {
         'reply' => $chatLog->ai_response
     ]);
 })->middleware('auth');
+Route::get('/tracker', function () {
+    return view('tracker');
+})->middleware('auth');
+
+Route::post('/tracker', [IbadahTrackerController::class, 'store'])->middleware('auth');

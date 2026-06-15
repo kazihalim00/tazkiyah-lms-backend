@@ -61,4 +61,35 @@ class IbadahTrackerController extends Controller
             'data' => $history
         ], 200);
     }
+    public function store(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'fajr' => 'required|in:Jamaah,Individual,Missed',
+            'morning_adhkar' => 'nullable',
+        ]);
+
+        // Cleanup input to match ENUM exactly
+        $fajrValue = trim($request->fajr);
+
+        // Debugging 
+        \Log::info('Saving Fajr value: ' . $fajrValue);
+
+        $tracker = IbadahTracker::updateOrCreate(
+            ['user_id' => auth()->id(), 'date' => $request->date],
+            [
+                'fajr' => $fajrValue, // Trim করা ভ্যালু পাঠাচ্ছি
+                'morning_adhkar' => $request->has('morning_adhkar') ? true : false,
+            ]
+        );
+
+        // Points logic
+        $user = auth()->user();
+        if ($request->fajr === 'Jamaah')
+            $user->increment('total_points', 10);
+        elseif ($request->fajr === 'Individual')
+            $user->increment('total_points', 5);
+
+        return back()->with('success', 'Alhamdulillah! Your Ibadah status has been saved successfully.');
+    }
 }
