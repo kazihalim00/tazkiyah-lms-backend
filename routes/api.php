@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LmsController;
 use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SpiritualJournalController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']); // Login Route
@@ -18,7 +19,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return $request->user();
     });
 
-    // Save or update daily ibadah tracker
+    // Ibadah Tracker Routes
     Route::post('/tracker', [IbadahTrackerController::class, 'saveDailyTracker']);
+    Route::get('/tracker/history', [IbadahTrackerController::class, 'getHistory']); // <-- History Route
+
+    // Spiritual Journal Routes
+    Route::post('/journal', [SpiritualJournalController::class, 'saveJournal']);
+    Route::get('/journal/history', [SpiritualJournalController::class, 'getHistory']); // <-- History Route
 
 });

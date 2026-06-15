@@ -42,4 +42,20 @@ class IbadahTrackerController extends Controller
             'data' => $tracker
         ], 200);
     }
+    public function getHistory()
+    {
+        // Get the currently authenticated user
+        $user = Auth::user();
+
+        // Fetch the user's tracker history, ordering by date (newest first)
+        $history = IbadahTracker::where('user_id', $user->id)
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ibadah tracker history fetched successfully',
+            'data' => $history
+        ], 200);
+    }
 }
