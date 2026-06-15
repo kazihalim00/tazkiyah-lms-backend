@@ -3,23 +3,27 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\LmsLevel;
+use App\Models\LmsModule;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Create an admin user for testing purposes
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
         ]);
+
+        // Create 3 LMS levels, and for each level, generate 4 modules
+        LmsLevel::factory(3)->create()->each(function ($level) {
+            LmsModule::factory(4)->create([
+                'lms_level_id' => $level->id,
+            ]);
+        });
     }
 }
