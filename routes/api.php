@@ -3,8 +3,22 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LmsController;
+use App\Http\Controllers\Api\IbadahTrackerController;
+use App\Http\Controllers\Api\AuthController;
 
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Public Routes
+Route::post('/login', [AuthController::class, 'login']); // Login Route
 Route::get('/lms-levels', [LmsController::class, 'getLevelsWithModules']);
+
+// Protected Routes (Requires Token)
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    // Default user route
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // Save or update daily ibadah tracker
+    Route::post('/tracker', [IbadahTrackerController::class, 'saveDailyTracker']);
+
+});
