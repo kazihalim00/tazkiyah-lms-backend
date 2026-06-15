@@ -46,4 +46,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(SpiritualJournal::class);
     }
+
+    // Relationship: A user has many chat logs with Noor AI
+    public function chatLogs()
+    {
+        return $this->hasMany(ChatLog::class);
+    }
 }
