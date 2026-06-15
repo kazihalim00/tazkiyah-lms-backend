@@ -35,7 +35,10 @@ class IbadahTrackerController extends Controller
             // Data to update or insert
             $validatedData
         );
-
+        // Give 10 points if the tracker is created for the very first time today
+        if ($tracker->wasRecentlyCreated) {
+            $user->increment('total_points', 10);
+        }
         return response()->json([
             'success' => true,
             'message' => 'Daily Ibadah tracker saved successfully',

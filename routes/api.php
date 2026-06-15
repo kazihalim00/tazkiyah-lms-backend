@@ -15,9 +15,30 @@ Route::get('/lms-levels', [LmsController::class, 'getLevelsWithModules']);
 // Protected Routes (Requires Token)
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    // Default user route
-    Route::get('/user', function (Request $request) {
-        return $request->user();
+    // Get User Profile with Gamification Badges
+    Route::get('/profile', function (Request $request) {
+        $user = $request->user();
+        $points = $user->total_points;
+
+        // Gamification Logic (Badge Calculation)
+        $badge = 'Seeker';
+        if ($points >= 50)
+            $badge = 'Fajr Warrior';
+        if ($points >= 150)
+            $badge = 'Consistent Believer';
+        if ($points >= 300)
+            $badge = 'Tazkiyah Master';
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User profile fetched successfully',
+            'data' => [
+                'user_info' => $user,
+                'current_badge' => $badge,
+                'current_points' => $points,
+                'next_milestone' => ($points < 50) ? 50 : (($points < 150) ? 150 : (($points < 300) ? 300 : 'Max Level Reached'))
+            ]
+        ], 200);
     });
 
     // Ibadah Tracker Routes
