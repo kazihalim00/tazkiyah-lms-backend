@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SpiritualJournalController;
 use App\Http\Controllers\Api\NoorAiController;
+use App\Http\Controllers\Api\DashboardController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -53,4 +54,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Noor AI Chat Routes
     Route::post('/noor-ai/chat', [NoorAiController::class, 'sendMessage']);
     Route::get('/noor-ai/history', [NoorAiController::class, 'getChatHistory']);
+
+    // Dashboard Analytics
+    Route::get('/dashboard', [DashboardController::class, 'getDashboardSummary']);
 });
