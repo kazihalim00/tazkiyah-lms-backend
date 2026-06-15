@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\LmsLevel;
 use Illuminate\Http\Request;
+use App\Models\Course;
 
 class LmsController extends Controller
 {
@@ -16,7 +17,7 @@ class LmsController extends Controller
                 $query->orderBy('order', 'asc'); // Sort modules by order in ascending sequence
             }
         ])->get();
-        
+
         // Fetch levels with their modules, and modules with their lessons
         $levels = LmsLevel::with([
             'modules' => function ($query) {
@@ -34,5 +35,10 @@ class LmsController extends Controller
             'data' => $levels
         ], 200);
     }
-
+    // App\Http\Controllers\LMSController.php
+    public function index()
+    {
+        $courses = Course::all();
+        return view('lms', compact('courses'));
+    }
 }

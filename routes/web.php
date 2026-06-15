@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Models\ChatLog;
+use App\Models\Course;
 
 
 // Redirect root URL to login page
@@ -119,9 +120,6 @@ Route::get('/tracker', function () {
     return view('layouts.app'); // Temporary placeholder
 })->middleware('auth');
 
-Route::get('/lms', function () {
-    return view('layouts.app'); // Temporary placeholder
-})->middleware('auth');
 
 // Noor AI Web Chat Route
 Route::post('/web-chat', function (Request $request) {
@@ -164,3 +162,21 @@ Route::get('/tracker', function () {
 })->middleware('auth');
 
 Route::post('/tracker', [IbadahTrackerController::class, 'store'])->middleware('auth');
+Route::get('/lms', function () {
+    $courses = Course::all();
+    return view('lms', compact('courses'));
+})->middleware('auth');
+
+Route::get('/lms/{id}', function ($id) {
+    $course = Course::findOrFail($id);
+    return view('lms-details', compact('course'));
+})->middleware('auth');
+
+Route::get('/lesson/{id}', function ($id) {
+    $lesson = \App\Models\Lesson::findOrFail($id);
+    return view('lesson-view', compact('lesson'));
+})->middleware('auth');
+
+Route::post('/lesson/{id}/complete', function ($id) {
+    return back()->with('success', 'Lesson marked as complete!');
+})->name('lesson.complete')->middleware('auth');

@@ -9,18 +9,20 @@ class Lesson extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'lms_module_id',
-        'title',
-        'content_type',
-        'content_body',
-        'media_url',
-        'order'
-    ];
-
-    // Relationship: A lesson belongs to a specific module
+    protected $fillable = ['module_id', 'title', 'content', 'content_type', 'order'];    // Relationship: A lesson belongs to a specific module
     public function module()
     {
         return $this->belongsTo(LmsModule::class, 'lms_module_id');
     }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($lesson) {
+            if (empty($lesson->lms_module_id)) {
+                $lesson->lms_module_id = $lesson->module_id;
+            }
+        });
+    }
+    
 }
