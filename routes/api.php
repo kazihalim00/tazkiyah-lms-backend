@@ -9,7 +9,8 @@ use App\Http\Controllers\Api\SpiritualJournalController;
 use App\Http\Controllers\Api\NoorAiController;
 
 // Public Routes
-Route::post('/login', [AuthController::class, 'login']); // Login Route
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']); // <-- New Registration Route
 Route::get('/lms-levels', [LmsController::class, 'getLevelsWithModules']);
 
 // Protected Routes (Requires Token)
