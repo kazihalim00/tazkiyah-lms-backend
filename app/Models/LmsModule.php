@@ -16,4 +16,10 @@ class LmsModule extends Model
     {
         return $this->belongsTo(LmsLevel::class, 'lms_level_id');
     }
+
+    // Relationship: A module has many lessons
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class);
+    }
 }

@@ -16,6 +16,16 @@ class LmsController extends Controller
                 $query->orderBy('order', 'asc'); // Sort modules by order in ascending sequence
             }
         ])->get();
+        
+        // Fetch levels with their modules, and modules with their lessons
+        $levels = LmsLevel::with([
+            'modules' => function ($query) {
+                $query->orderBy('order', 'asc');
+            },
+            'modules.lessons' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+        ])->get();
 
         // Return data in JSON format
         return response()->json([
@@ -24,4 +34,5 @@ class LmsController extends Controller
             'data' => $levels
         ], 200);
     }
+
 }
