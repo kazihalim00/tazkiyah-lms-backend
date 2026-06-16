@@ -28,8 +28,9 @@
             </div>
         @endif
 
-        <form action="{{ url('/register') }}" method="POST">
+        <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
             @csrf
+
             <div class="mb-4">
                 <label class="block text-gray-700 font-medium mb-2">Full Name</label>
                 <input type="text" name="name" required
@@ -51,11 +52,17 @@
                     placeholder="••••••••">
             </div>
 
-            <div class="mb-6">
+            <div class="mb-4">
                 <label class="block text-gray-700 font-medium mb-2">Confirm Password</label>
                 <input type="password" name="password_confirmation" required
                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="••••••••">
+            </div>
+
+            <div class="mb-6">
+                <label for="image" class="block text-sm font-medium text-gray-700">Profile Image (Optional)</label>
+                <input type="file" name="image" id="image" accept="image/*"
+                    class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
             </div>
 
             <button type="submit"
