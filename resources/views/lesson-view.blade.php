@@ -30,10 +30,33 @@
 
             <form action="{{ route('lesson.complete', $lesson->id) }}" method="POST">
                 @csrf
-                <button type="submit"
-                    class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm">
-                    Complete Lesson
-                </button>
+                <div class="mt-8 flex justify-between items-center border-t border-gray-100 pt-6">
+
+                    @php
+
+                        $isCompleted = \App\Models\LessonCompletion::where('user_id', auth()->id())
+                            ->where('lesson_id', $lesson->id)
+                            ->exists();
+                    @endphp
+
+                    @if($isCompleted)
+                        <button disabled
+                            class="bg-gray-100 text-emerald-600 border-2 border-emerald-500 px-8 py-3 rounded-xl font-bold cursor-not-allowed shadow-sm flex items-center gap-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Completed
+                        </button>
+                    @else
+                        <form action="{{ route('lesson.complete', $lesson->id) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm">
+                                Complete Lesson
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </form>
         </div>
     </div>

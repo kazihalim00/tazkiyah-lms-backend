@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Models\ChatLog;
 use App\Models\Course;
+use App\Models\LessonCompletion;
 
 /*
 |--------------------------------------------------------------------------
@@ -219,10 +220,17 @@ Route::get('/lesson/{id}', function ($id) {
     return view('lesson-view', compact('lesson'));
 })->middleware('auth');
 
+
 // Mark a specific lesson as completed
 Route::post('/lesson/{id}/complete', function ($id) {
-    // Future update: Add logic here to store completion data in a progress table
-    return back()->with('success', 'Lesson marked as complete!');
+    $user = Auth::user();
+
+    LessonCompletion::firstOrCreate([
+        'user_id' => $user->id,
+        'lesson_id' => $id
+    ]);
+
+    return back()->with('success', 'Lesson completed successfully! Great job!');
 })->name('lesson.complete')->middleware('auth');
 
 /*
