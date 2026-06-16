@@ -39,4 +39,29 @@ class ModuleController extends Controller
 
         return redirect()->route('admin.modules.index')->with('success', 'Module created successfully!');
     }
+
+    public function edit(Module $module)
+    {
+        $courses = Course::all();
+        return view('admin.modules.edit', compact('module', 'courses'));
+    }
+
+
+    public function update(Request $request, Module $module)
+    {
+        $validated = $request->validate([
+            'course_id' => 'required',
+            'title' => 'required|string|max:255',
+        ]);
+
+        $module->update($validated);
+
+        return redirect()->route('admin.modules.index')->with('success', 'Module updated successfully!');
+    }
+
+    public function destroy(Module $module)
+    {
+        $module->delete();
+        return redirect()->route('admin.modules.index')->with('success', 'Module deleted successfully!');
+    }
 }

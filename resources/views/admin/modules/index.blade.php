@@ -32,7 +32,15 @@
                             <td class="p-4 font-medium text-gray-800">{{ $module->title }}</td>
                             <td class="p-4 text-gray-600">{{ $module->course->title ?? 'N/A' }}</td>
                             <td class="p-4 text-right flex justify-end gap-3">
-                                <span class="text-gray-400 text-sm italic">Edit/Delete coming soon</span>
+                                <a href="{{ route('admin.modules.edit', $module->id) }}"
+                                    class="text-blue-500 font-bold hover:underline">Edit</a>
+
+                                <form action="{{ route('admin.modules.destroy', $module->id) }}" method="POST"
+                                    onsubmit="return confirm('Are you sure you want to delete this module? All lessons under it will also be deleted!');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-500 font-bold hover:underline">Delete</button>
+                                </form>
                             </td>
                         </tr>
                     @empty
