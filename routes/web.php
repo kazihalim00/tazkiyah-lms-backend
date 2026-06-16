@@ -13,6 +13,7 @@ use App\Models\ChatLog;
 use App\Models\Course;
 use App\Models\LessonCompletion;
 
+
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -208,10 +209,15 @@ Route::get('/lms', function () {
     return view('lms', compact('courses'));
 })->middleware('auth');
 
-// Show specific course details (Modules & Lessons list)
+// Show specific course details and track progress
 Route::get('/lms/{id}', function ($id) {
-    $course = Course::findOrFail($id);
-    return view('lms-details', compact('course'));
+    $course = \App\Models\Course::findOrFail($id);
+
+    $completedLessonIds = \App\Models\LessonCompletion::where('user_id', auth()->id())
+        ->pluck('lesson_id')
+        ->toArray();
+
+    return view('lms-details', compact('course', 'completedLessonIds'));
 })->middleware('auth');
 
 // View a specific lesson's content
@@ -259,4 +265,14 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // Update a specific lesson from the database
     Route::put('/lessons/{lesson}', [\App\Http\Controllers\Admin\LessonController::class, 'update'])->name('lessons.update');
+
+    // Courses route
+    Route::get('/courses', [\App\Http\Controllers\Admin\CourseController::class, 'index'])->name('courses.index');
+    Route::get('/courses/create', [\App\Http\Controllers\Admin\CourseController::class, 'create'])->name('courses.create');
+    Route::post('/courses', [\App\Http\Controllers\Admin\CourseController::class, 'store'])->name('courses.store');
+
+    // Module route
+    Route::get('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'index'])->name('modules.index');
+    Route::get('/modules/create', [\App\Http\Controllers\Admin\ModuleController::class, 'create'])->name('modules.create');
+    Route::post('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'store'])->name('modules.store');
 });
