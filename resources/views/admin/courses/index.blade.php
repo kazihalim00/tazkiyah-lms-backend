@@ -2,6 +2,8 @@
 @section('title', 'Manage Courses')
 
 @section('content')
+@include('admin.nav')
+
 <div class="max-w-6xl mx-auto mt-10">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-gray-800">Manage Courses</h2>
