@@ -78,4 +78,39 @@ class FeedController extends Controller
 
         return back()->with('success', 'Comment added successfully!');
     }
+    // Add these inside the FeedController class
+
+    /**
+     * Toggle like for a specific comment.
+     */
+    public function toggleCommentLike($commentId)
+    {
+        $userId = \Auth::id();
+        $existingLike = \App\Models\CommentLike::where('user_id', $userId)->where('comment_id', $commentId)->first();
+
+        if ($existingLike) {
+            $existingLike->delete();
+        } else {
+            \App\Models\CommentLike::create(['user_id' => $userId, 'comment_id' => $commentId]);
+        }
+        return back();
+    }
+
+    /**
+     * Store a reply to an existing comment.
+     */
+    public function storeReply(Request $request, $commentId)
+    {
+        $request->validate(['content' => 'required|string|max:500']);
+        $parentComment = \App\Models\Comment::findOrFail($commentId);
+
+        \App\Models\Comment::create([
+            'user_id' => \Auth::id(),
+            'post_id' => $parentComment->post_id,
+            'parent_id' => $commentId,
+            'content' => $request->input('content'),
+        ]);
+
+        return back()->with('success', 'Reply added successfully!');
+    }
 }

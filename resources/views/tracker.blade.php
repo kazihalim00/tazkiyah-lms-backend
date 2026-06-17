@@ -4,13 +4,13 @@
 
 @section('content')
     <div class="max-w-5xl mx-auto" x-data="{
-                        fajr: '{{ $tracker->fajr ?? 'missed' }}',
-                        dhuhr: '{{ $tracker->dhuhr ?? 'missed' }}',
-                        asr: '{{ $tracker->asr ?? 'missed' }}',
-                        maghrib: '{{ $tracker->maghrib ?? 'missed' }}',
-                        isha: '{{ $tracker->isha ?? 'missed' }}',
-                        khushu: {{ $tracker->khushu_level ?? 5 }}
-                    }">
+                                fajr: '{{ $tracker->fajr ?? 'missed' }}',
+                                dhuhr: '{{ $tracker->dhuhr ?? 'missed' }}',
+                                asr: '{{ $tracker->asr ?? 'missed' }}',
+                                maghrib: '{{ $tracker->maghrib ?? 'missed' }}',
+                                isha: '{{ $tracker->isha ?? 'missed' }}',
+                                khushu: {{ $tracker->khushu_level ?? 5 }}
+                            }">
 
         <!-- Professional Header with Date -->
         <div
@@ -37,7 +37,18 @@
                 Find Partner
             </a>
         </div>
-
+        @if(isset($spiritualLesson))
+            <div
+                class="mb-8 p-6 rounded-3xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100/60 shadow-sm flex items-start gap-4">
+                <div
+                    class="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg shadow-md shrink-0">
+                    📖</div>
+                <div>
+                    <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider">Spiritual Lesson of the Day</h4>
+                    <p class="text-gray-700 font-medium text-sm mt-1 leading-relaxed italic">{{ $spiritualLesson }}</p>
+                </div>
+            </div>
+        @endif
         <form action="{{ url('/tracker') }}" method="POST" class="space-y-6">
             @csrf
 
@@ -53,13 +64,13 @@
                         <div class="flex flex-wrap gap-2">
                             @foreach(['jamaah_mosque' => 'Mosque', 'jamaah_home' => 'Home', 'alone' => 'Alone', 'qada' => 'Qada', 'missed' => 'Missed'] as $val => $label)
                                 <button type="button" @click="{{ $m }} = '{{ $val }}'" :class="{
-                                                                                        'bg-emerald-600 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_mosque',
-                                                                                        'bg-teal-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_home',
-                                                                                        'bg-blue-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'alone',
-                                                                                        'bg-orange-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'qada',
-                                                                                        'bg-red-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'missed',
-                                                                                        'bg-gray-100 text-gray-600': {{ $m }} !== '{{ $val }}'
-                                                                                    }"
+                                                                                                        'bg-emerald-600 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_mosque',
+                                                                                                        'bg-teal-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_home',
+                                                                                                        'bg-blue-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'alone',
+                                                                                                        'bg-orange-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'qada',
+                                                                                                        'bg-red-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'missed',
+                                                                                                        'bg-gray-100 text-gray-600': {{ $m }} !== '{{ $val }}'
+                                                                                                    }"
                                     class="px-4 py-2 text-xs font-bold rounded-lg transition-all">{{ $label }}</button>
                             @endforeach
                         </div>

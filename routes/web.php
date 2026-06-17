@@ -11,9 +11,11 @@ use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Http\Controllers\AccountabilityPartnerController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\LeaderboardController;
 use App\Models\ChatLog;
 use App\Models\Course;
 use App\Models\LessonCompletion;
+use App\Http\Controllers\ChatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -114,7 +116,6 @@ Route::get('/my-dashboard', function () {
         $date = Carbon::now()->subDays($i)->format('Y-m-d');
         $chartLabels[] = Carbon::parse($date)->format('M d');
 
-        // Fetch the tracker record for the specific date
         $tracker = IbadahTracker::where('user_id', $user->id)
             ->whereDate('date', $date)
             ->first();
@@ -125,39 +126,36 @@ Route::get('/my-dashboard', function () {
             // 1. Calculate points for all 5 Farz prayers
             $prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
             foreach ($prayers as $prayer) {
-                if ($tracker->$prayer === 'jamaah_mosque') {
+                if ($tracker->$prayer === 'jamaah_mosque')
                     $dailyScore += 10;
-                } elseif ($tracker->$prayer === 'jamaah_home') {
+                elseif ($tracker->$prayer === 'jamaah_home')
                     $dailyScore += 7;
-                } elseif ($tracker->$prayer === 'alone') {
+                elseif ($tracker->$prayer === 'alone')
                     $dailyScore += 5;
-                } elseif ($tracker->$prayer === 'qada') {
+                elseif ($tracker->$prayer === 'qada')
                     $dailyScore += 2;
-                }
             }
 
             // 2. Calculate points for Sunnah, Adhkar, and Good Deeds (5 points each)
             $deeds = ['morning_adhkar', 'evening_adhkar', 'tahajjud', 'witr', 'sadaqah', 'duwa'];
             foreach ($deeds as $deed) {
-                if ($tracker->$deed == 1) {
+                if ($tracker->$deed == 1)
                     $dailyScore += 5;
-                }
             }
 
             // 3. Calculate points for Quran Recitation (2 points per page)
-            if ($tracker->quran_pages > 0) {
+            if ($tracker->quran_pages > 0)
                 $dailyScore += ($tracker->quran_pages * 2);
-            }
 
-            // 4. Add points based on Khushu Level (Focus level equals to points)
-            if ($tracker->khushu_level > 0) {
+            // 4. Add points based on Khushu Level
+            if ($tracker->khushu_level > 0)
                 $dailyScore += $tracker->khushu_level;
-            }
         }
 
         $chartData[] = $dailyScore;
     }
 
+    // Strictly passing only chart and user details to keep it clean
     return view('dashboard', compact('user', 'points', 'badge', 'chartLabels', 'chartData'));
 })->middleware('auth');
 
@@ -193,9 +191,31 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/feed', [FeedController::class, 'index'])->name('feed.index');
     Route::post('/feed', [FeedController::class, 'store'])->name('feed.store');
 
+    Route::get('/messages/{partner?}', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/messages/{partner}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     // Dynamic interaction routes for posts
     Route::post('/feed/posts/{post}/like', [FeedController::class, 'toggleLike'])->name('posts.like');
     Route::post('/feed/posts/{post}/comments', [FeedController::class, 'storeComment'])->name('comments.store');
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+
+    // Comment Likes & Replies
+    Route::post('/comment/{comment}/like', [FeedController::class, 'toggleCommentLike'])->name('comments.like');
+    Route::post('/comment/{comment}/reply', [FeedController::class, 'storeReply'])->name('comments.reply');
+});
+
+// Update your existing /tracker route to include the Daily Spiritual Lesson
+Route::get('/tracker', function () {
+    $lessons = [
+        "\"Verily, in the remembrance of Allah do hearts find rest.\" (Ar-Rad: 28) - Make today count by keeping your tongue moist with Adhkar.",
+        "The Prophet (ﷺ) said: 'The closest a servant comes to his Lord is when he is in prostration (Sujood).' Enhance your Khushu today.",
+        "Anas ibn Malik reported: The Prophet (ﷺ) was the most generous of people. Don't forget to give a small Sadaqah today, even a smile!",
+        "\"Establish prayer, for indeed, prayer prohibits immorality and wrongdoing.\" (Al-Ankabut: 45) - Aim for all 5 prayers in the Mosque today.",
+        "The best among you are those who learn the Quran and teach it. Try to reflect deeply on at least one verse today."
+    ];
+    // Pick a deterministic lesson based on the day of the month
+    $spiritualLesson = $lessons[date('j') % count($lessons)];
+
+    return view('tracker', compact('spiritualLesson'));
 });
 
 /*

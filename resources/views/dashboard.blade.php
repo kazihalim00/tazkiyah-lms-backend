@@ -31,7 +31,9 @@
         <h2 class="text-xl font-bold text-gray-800 mb-6">Last 7 Days Activity</h2>
         <canvas id="ibadahChart" height="80"></canvas>
     </div>
-@endsection
+
+
+    @endsection
 
 @push('scripts')
     <script>

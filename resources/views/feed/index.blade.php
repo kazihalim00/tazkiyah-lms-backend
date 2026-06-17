@@ -20,7 +20,7 @@
             <form action="{{ route('feed.store') }}" method="POST" enctype="multipart/form-data" class="w-full space-y-4">
                 @csrf
                 <textarea name="content" rows="3" required
-                    class="w-full border-0 focus:ring-0 p-2 text-gray-700 text-base placeholder-gray-400夹 bg-gray-50 rounded-2xl focus:outline-none"
+                    class="w-full border-0 focus:ring-0 p-2 text-gray-700 text-base placeholder-gray-400 bg-gray-50 rounded-2xl focus:outline-none"
                     placeholder="Share an Islamic reminder or thought, {{ auth()->user()->name }}..."></textarea>
                 
                 <div class="flex items-center justify-between pt-2 border-t border-gray-50">
@@ -104,7 +104,8 @@
                         </button>
                     </form>
 
-                    <div class="w-1/2 py-2.5 bg-gray-50 text-gray-500 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-100">
+                    <div class="w-1/2 py-2.5 bg-gray-50 text-gray-500 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-100"
+                         onclick="document.getElementById('main-comment-input-{{ $post->id }}').focus()">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                         </svg>
@@ -114,34 +115,85 @@
 
                 <!-- Comments Display Box -->
                 <div class="space-y-4 bg-gray-50/70 p-4 rounded-2xl mt-2">
-                    <!-- List of existing comments -->
-                    @if($post->comments->count() > 0)
-                        <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
-                            @foreach($post->comments as $comment)
-                                <div class="flex items-start gap-2.5">
-                                    @if($comment->user->image)
-                                        <img src="{{ asset('storage/' . $comment->user->image) }}" class="h-7 w-7 rounded-full object-cover shadow-sm mt-0.5" alt="Commenter">
-                                    @else
-                                        <div class="h-7 w-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-black text-[10px] uppercase mt-0.5">
-                                            {{ substr($comment->user->name, 0, 1) }}
+                    
+                    <!-- List of top-level comments and nested replies -->
+                    @if($post->comments->whereNull('parent_id')->count() > 0)
+                        <div class="space-y-4 max-h-80 overflow-y-auto pr-1">
+                            @foreach($post->comments->whereNull('parent_id') as $comment)
+                                <div class="space-y-2">
+                                    
+                                    <!-- Parent Comment Bubble -->
+                                    <div class="flex items-start gap-2.5">
+                                        @if($comment->user->image)
+                                            <img src="{{ asset('storage/' . $comment->user->image) }}" class="h-7 w-7 rounded-full object-cover shadow-sm mt-0.5" alt="Commenter">
+                                        @else
+                                            <div class="h-7 w-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-black text-[10px] uppercase mt-0.5">
+                                                {{ substr($comment->user->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div class="bg-white p-3 rounded-2xl border border-gray-100 text-sm max-w-[85%] shadow-sm w-full">
+                                            <span class="block font-black text-xs text-gray-900 mb-0.5">{{ $comment->user->name }}</span>
+                                            <p class="text-gray-700 font-medium leading-relaxed">{{ $comment->content }}</p>
+                                            
+                                            <!-- Comment Actions (Like & Reply Triggers) -->
+                                            <div class="flex items-center gap-3 mt-2 text-[10px] font-bold text-gray-400">
+                                                <form action="{{ route('comments.like', $comment->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="{{ $comment->isLikedBy(auth()->id()) ? 'text-indigo-600 font-black' : 'hover:text-indigo-600' }}">
+                                                        👍 {{ $comment->likes->count() }} Support
+                                                    </button>
+                                                </form>
+                                                <span class="cursor-pointer hover:text-indigo-600" onclick="document.getElementById('reply-form-{{ $comment->id }}').classList.toggle('hidden')">
+                                                    Reply
+                                                </span>
+                                                <span>{{ $comment->created_at->diffForHumans() }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nested Comment Replies (Child Comments) -->
+                                    @if($comment->replies->count() > 0)
+                                        <div class="pl-10 space-y-2 border-l-2 border-gray-200 ml-3.5">
+                                            @foreach($comment->replies as $reply)
+                                                <div class="flex items-start gap-2">
+                                                    @if($reply->user->image)
+                                                        <img src="{{ asset('storage/' . $reply->user->image) }}" class="h-6 w-6 rounded-full object-cover shadow-sm mt-0.5" alt="Replier">
+                                                    @else
+                                                        <div class="h-6 w-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-black text-[9px] uppercase mt-0.5">
+                                                            {{ substr($reply->user->name, 0, 1) }}
+                                                        </div>
+                                                    @endif
+                                                    <div class="bg-purple-50/50 p-2.5 rounded-xl text-xs w-full border border-purple-100/30">
+                                                        <span class="block font-extrabold text-gray-900 mb-0.5">{{ $reply->user->name }}</span>
+                                                        <p class="text-gray-700 font-medium">{{ $reply->content }}</p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     @endif
-                                    <div class="bg-white p-3 rounded-2xl border border-gray-100 text-sm max-w-[85%] shadow-sm">
-                                        <span class="block font-black text-xs text-gray-900 mb-0.5">{{ $comment->user->name }}</span>
-                                        <p class="text-gray-700 font-medium leading-relaxed">{{ $comment->content }}</p>
-                                    </div>
+
+                                    <!-- Inline Reply Input Field (Hidden by default) -->
+                                    <form id="reply-form-{{ $comment->id }}" action="{{ route('comments.reply', $comment->id) }}" method="POST" class="hidden pl-10 flex gap-2 pt-1">
+                                        @csrf
+                                        <input type="text" name="content" required placeholder="Write a reply..." 
+                                            class="w-full bg-white px-3 py-1.5 rounded-lg text-xs border border-gray-200 focus:outline-none focus:border-indigo-500 text-gray-700">
+                                        <button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 shadow-sm">
+                                            Reply
+                                        </button>
+                                    </form>
+
                                 </div>
                             @endforeach
                         </div>
                     @endif
 
-                    <!-- Write a Comment Input Field -->
+                    <!-- Main Top-Level Comment Input Field -->
                     <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex gap-2 pt-2 border-t border-gray-100">
                         @csrf
-                        <input type="text" name="content" required placeholder="Write a respectful comment..." 
+                        <input type="text" name="content" id="main-comment-input-{{ $post->id }}" required placeholder="Write a respectful comment..." 
                             class="w-full bg-white px-4 py-2 rounded-xl text-sm border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-gray-700">
                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-black transition">
-                            Reply
+                            Submit
                         </button>
                     </form>
                 </div>
