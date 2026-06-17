@@ -9,11 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Api\IbadahTrackerController;
+use App\Http\Controllers\AccountabilityPartnerController;
 use App\Models\ChatLog;
 use App\Models\Course;
 use App\Models\LessonCompletion;
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -85,9 +84,10 @@ Route::post('/logout', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
-| User Dashboard & Tracking Routes
+| User Dashboard & Profile Routes
 |--------------------------------------------------------------------------
 */
+
 Route::get('/profile', function () {
     return view('profile');
 })->name('profile')->middleware('auth');
@@ -110,7 +110,11 @@ Route::get('/my-dashboard', function () {
     for ($i = 6; $i >= 0; $i--) {
         $date = Carbon::now()->subDays($i)->format('Y-m-d');
         $chartLabels[] = Carbon::parse($date)->format('M d');
-        $tracker = IbadahTracker::where('user_id', $user->id)->where('date', $date)->first();
+
+        $tracker = IbadahTracker::where('user_id', $user->id)
+            ->whereDate('date', $date)
+            ->first();
+
         $dailyScore = 0;
 
         if ($tracker) {
@@ -118,6 +122,7 @@ Route::get('/my-dashboard', function () {
                 $dailyScore += 10;
             elseif ($tracker->fajr === 'Alone')
                 $dailyScore += 5;
+
             if ($tracker->morning_adhkar)
                 $dailyScore += 5;
         }
@@ -151,6 +156,19 @@ Route::post('/profile/update', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
+| Leaderboard & Accountability Partner Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/community', [AccountabilityPartnerController::class, 'index'])->name('community.index');
+    Route::post('/partner/request/{id}', [AccountabilityPartnerController::class, 'sendRequest'])->name('partner.request');
+    Route::post('/partner/accept/{id}', [AccountabilityPartnerController::class, 'acceptRequest'])->name('partner.accept');
+    Route::post('/partner/reject/{id}', [AccountabilityPartnerController::class, 'rejectRequest'])->name('partner.reject');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Course Catalog Routes
 |--------------------------------------------------------------------------
 */
@@ -170,21 +188,16 @@ Route::get('/noor-ai', function () {
     return view('noor-ai');
 })->middleware('auth');
 
-
 Route::post('/web-chat', function (Request $request) {
     $userMessage = $request->input('message');
 
     try {
-        // এখানে তোমার পাইথন (Flask/FastAPI) সার্ভারের আসল URL বসবে
-        // সাধারণত লোকালহোস্টে এটি 5000 বা 8000 পোর্টে চলে
         $response = Http::timeout(60)->post('http://127.0.0.1:5000/chat', [
             'message' => $userMessage
         ]);
 
         if ($response->successful()) {
             $data = $response->json();
-
-            // পাইথন থেকে যেই 'reply' বা 'response' কি (key) তে ডেটা আসবে, সেটা এখানে ধরছি
             $aiReply = $data['reply'] ?? $data['response'] ?? 'I could not process the response properly.';
 
             return response()->json([

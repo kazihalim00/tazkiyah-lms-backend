@@ -21,6 +21,7 @@ class User extends Authenticatable
         'image',
         'role',
         'timezone',
+        'gender',       
         'total_points',
     ];
 
@@ -59,5 +60,32 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'companions', 'user_id', 'partner_id')
             ->withPivot('status')
             ->withTimestamps();
+    }
+    public function getLevelAttribute()
+    {
+        $points = $this->total_points ?? 0;
+
+        if ($points >= 5000)
+            return 'Mumin (মুমিন)';
+        if ($points >= 2500)
+            return 'Devoted (নিবেদিত)';
+        if ($points >= 1000)
+            return 'Seeker (অনুসন্ধানী)';
+        if ($points >= 300)
+            return 'Consistent (ধারাবাহিক)';
+
+        return 'Beginner (শিক্ষানবিস)';
+    }
+
+    public function myPartners()
+    {
+        return $this->belongsToMany(User::class, 'accountability_partners', 'partner_id', 'user_id')
+            ->wherePivot('status', 'accepted');
+    }
+
+    public function partneredWith()
+    {
+        return $this->belongsToMany(User::class, 'accountability_partners', 'user_id', 'partner_id')
+            ->wherePivot('status', 'accepted');
     }
 }

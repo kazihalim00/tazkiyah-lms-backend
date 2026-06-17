@@ -4,13 +4,13 @@
 
 @section('content')
     <div class="max-w-5xl mx-auto" x-data="{
-                fajr: '{{ $tracker->fajr ?? 'missed' }}',
-                dhuhr: '{{ $tracker->dhuhr ?? 'missed' }}',
-                asr: '{{ $tracker->asr ?? 'missed' }}',
-                maghrib: '{{ $tracker->maghrib ?? 'missed' }}',
-                isha: '{{ $tracker->isha ?? 'missed' }}',
-                khushu: {{ $tracker->khushu_level ?? 5 }}
-            }">
+                        fajr: '{{ $tracker->fajr ?? 'missed' }}',
+                        dhuhr: '{{ $tracker->dhuhr ?? 'missed' }}',
+                        asr: '{{ $tracker->asr ?? 'missed' }}',
+                        maghrib: '{{ $tracker->maghrib ?? 'missed' }}',
+                        isha: '{{ $tracker->isha ?? 'missed' }}',
+                        khushu: {{ $tracker->khushu_level ?? 5 }}
+                    }">
 
         <!-- Professional Header with Date -->
         <div
@@ -31,7 +31,11 @@
                 <h3 class="text-lg font-bold">Accountability Partner</h3>
                 <p class="text-indigo-100 text-sm">Your current level: {{ auth()->user()->level ?? 'Beginner' }}</p>
             </div>
-            <button class="bg-white/20 hover:bg-white/30 px-5 py-2 rounded-lg font-bold transition">Find Partner</button>
+
+            <a href="{{ route('community.index') }}"
+                class="bg-white/20 hover:bg-white/30 px-5 py-2.5 rounded-lg font-bold transition text-sm">
+                Find Partner
+            </a>
         </div>
 
         <form action="{{ url('/tracker') }}" method="POST" class="space-y-6">
@@ -49,13 +53,13 @@
                         <div class="flex flex-wrap gap-2">
                             @foreach(['jamaah_mosque' => 'Mosque', 'jamaah_home' => 'Home', 'alone' => 'Alone', 'qada' => 'Qada', 'missed' => 'Missed'] as $val => $label)
                                 <button type="button" @click="{{ $m }} = '{{ $val }}'" :class="{
-                                                                        'bg-emerald-600 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_mosque',
-                                                                        'bg-teal-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_home',
-                                                                        'bg-blue-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'alone',
-                                                                        'bg-orange-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'qada',
-                                                                        'bg-red-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'missed',
-                                                                        'bg-gray-100 text-gray-600': {{ $m }} !== '{{ $val }}'
-                                                                    }"
+                                                                                        'bg-emerald-600 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_mosque',
+                                                                                        'bg-teal-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_home',
+                                                                                        'bg-blue-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'alone',
+                                                                                        'bg-orange-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'qada',
+                                                                                        'bg-red-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'missed',
+                                                                                        'bg-gray-100 text-gray-600': {{ $m }} !== '{{ $val }}'
+                                                                                    }"
                                     class="px-4 py-2 text-xs font-bold rounded-lg transition-all">{{ $label }}</button>
                             @endforeach
                         </div>
