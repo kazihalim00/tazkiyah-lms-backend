@@ -295,22 +295,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 /*
 |--------------------------------------------------------------------------
-| Temporary Route for Server Setup (Migration)
+| Hard Reset Server Setup Route
 |--------------------------------------------------------------------------
 */
 Route::get('/server-setup', function () {
     try {
-    
-        Artisan::call('config:clear');
-        Artisan::call('cache:clear');
+        // ১. সরাসরি ক্যাশ ফাইলগুলো ফিজিক্যালি ডিলিট করা
+        @unlink(base_path('bootstrap/cache/config.php'));
+        @unlink(base_path('bootstrap/cache/routes.php'));
+        @unlink(base_path('bootstrap/cache/services.php'));
+        @unlink(base_path('bootstrap/cache/packages.php'));
 
+        // ২. নতুন করে মাইগ্রেশন রান করা
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
 
-        Artisan::call('migrate', ['--force' => true]);
+        // (সিডার থাকলে নিচের লাইনের সামনের // মুছে দাও)
+        // \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
 
-    
-        Artisan::call('db:seed', ['--force' => true]);
-
-        return 'আলহামদুলিল্লাহ! Database Migration Completed Successfully!';
+        return 'আলহামদুলিল্লাহ! Cache Cleared and Database Migration Completed Successfully!';
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
