@@ -16,25 +16,44 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
     @stack('styles')
 </head>
 
-<body class="bg-gray-50 min-h-screen flex">
+<body class="bg-gray-50 min-h-screen flex" x-data="{ mobileMenuOpen: false }">
 
-    <!-- Left Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-100 flex-col hidden md:flex fixed h-full z-20">
+    <!-- Mobile Backdrop Overlay -->
+    <div x-show="mobileMenuOpen" x-cloak x-transition.opacity @click="mobileMenuOpen = false"
+        class="fixed inset-0 bg-black/40 z-20 md:hidden"></div>
+
+    <!-- Left Sidebar (fixed + off-canvas on mobile, static on desktop) -->
+    <aside
+        class="w-64 bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 left-0 h-full z-30 transform transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0"
+        :class="{ 'translate-x-0': mobileMenuOpen }">
         <!-- Logo Section -->
-        <div class="p-6 border-b border-gray-100 flex items-center gap-3">
-            <div
-                class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                T
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div
+                    class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+                    T
+                </div>
+                <span class="text-xl font-bold text-gray-800 tracking-tight">Tazkiyah</span>
             </div>
-            <span class="text-xl font-bold text-gray-800 tracking-tight">Tazkiyah</span>
+
+            <!-- Mobile Close Button -->
+            <button @click="mobileMenuOpen = false" class="md:hidden text-gray-400 hover:text-gray-600 p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
 
         <!-- Navigation Links -->
-        <nav class="flex-1 p-4 space-y-1">
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto" @click="mobileMenuOpen = false">
             <a href="{{ url('/my-dashboard') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('my-dashboard') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">
                 Dashboard
@@ -137,15 +156,26 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 md:ml-64 flex flex-col min-h-screen">
+    <main class="flex-1 md:ml-64 flex flex-col min-h-screen w-full">
         <header
             class="bg-white border-b border-gray-100 p-4 md:px-8 flex justify-between items-center sticky top-0 z-10">
-            <div class="text-gray-800 font-semibold text-lg">
-                @yield('header_title', 'Dashboard')
+            <div class="flex items-center gap-3 min-w-0">
+                <!-- Mobile Hamburger Button -->
+                <button @click="mobileMenuOpen = true"
+                    class="md:hidden -ml-2 p-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <div class="text-gray-800 font-semibold text-lg truncate">
+                    @yield('header_title', 'Dashboard')
+                </div>
             </div>
 
             <!-- Profile Dropdown with Image -->
-            <div class="relative" x-data="{ open: false }">
+            <div class="relative shrink-0" x-data="{ open: false }">
                 <button @click="open = !open" class="flex items-center gap-3 hover:opacity-80 transition">
                     <div class="hidden sm:flex items-center gap-2">
                         <span class="font-bold text-gray-700">{{ auth()->user()->name ?? 'User' }}</span>
@@ -198,14 +228,14 @@
 
         <!-- Success Message -->
         @if(session('success'))
-            <div class="px-8 pt-6">
+            <div class="px-4 md:px-8 pt-4 md:pt-6">
                 <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded shadow-sm">
                     {{ session('success') }}
                 </div>
             </div>
         @endif
 
-        <div class="p-8 flex-1">
+        <div class="p-4 md:p-8 flex-1 w-full max-w-full overflow-x-hidden">
             @yield('content')
         </div>
     </main>

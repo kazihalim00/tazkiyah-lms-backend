@@ -39,12 +39,12 @@ Route::post('/login', function (Request $request) {
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
+
+        // এখানে ভিউ না দিয়ে রিডাইরেক্ট দাও:
         return redirect()->intended('/my-dashboard');
     }
 
-    return back()->withErrors([
-        'email' => 'The provided credentials do not match our records.',
-    ]);
+    return back()->withErrors(['email' => 'Invalid credentials']);
 });
 
 Route::get('/register', function () {
