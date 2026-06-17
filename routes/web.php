@@ -293,13 +293,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/lessons/{lesson}', [\App\Http\Controllers\Admin\LessonController::class, 'destroy'])->name('lessons.destroy');
 });
 
-Route::get('/server-setup', function () {
+Route::get('/check-db', function () {
     try {
-        // --force ব্যবহার করা হচ্ছে যাতে কোনো বাধা ছাড়া মাইগ্রেশন হয়
-        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
-
-        return 'আলহামদুলিল্লাহ! Database Freshly Migrated Successfully!';
+        $dbName = \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
+        return "লারাভেল বর্তমানে এই ডাটাবেজে কানেক্ট আছে: " . $dbName;
     } catch (\Exception $e) {
-        return 'Error: ' . $e->getMessage();
+        return "কানেকশন এরর: " . $e->getMessage();
     }
 });
