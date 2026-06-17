@@ -3,40 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\AccountabilityPartner;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
-
-        // Global Top 10 users regardless of friendship status
-        $leaderboard = User::orderBy('total_points', 'desc')->take(10)->get();
-
-        // Get connected or requested user IDs to manage buttons on leaderboard
-        $existingConnections = AccountabilityPartner::where('user_id', $user->id)
-            ->orWhere('partner_id', $user->id)
+        // ১. শীর্ষ ৫০ জন সাধারণ ইউজারকে নিয়ে আসা (অ্যাডমিন বাদে)
+        $leaderboard = User::where('is_admin', 0)
+            ->orderBy('total_points', 'desc')
+            ->take(50)
             ->get();
 
+        $authId = auth()->id();
         $connectedUserIds = [];
         $pendingSentIds = [];
-        $pendingReceivedIds = [];
 
-        foreach ($existingConnections as $conn) {
-            $targetId = ($conn->user_id == $user->id) ? $conn->partner_id : $conn->user_id;
-            if ($conn->status === 'accepted') {
-                $connectedUserIds[] = $targetId;
-            } elseif ($conn->status === 'pending') {
-                if ($conn->user_id == $user->id) {
-                    $pendingSentIds[] = $targetId;
-                } else {
-                    $pendingReceivedIds[] = $targetId;
-                }
+        // ২. তোমার আসল টেবিল ও কলাম (user_id, partner_id) অনুযায়ী কুয়েরি
+        $connections = DB::table('accountability_partners')
+            ->where('user_id', $authId)
+            ->orWhere('partner_id', $authId)
+            ->get();
+
+        foreach ($connections as $connection) {
+            $status = strtolower($connection->status ?? '');
+
+            if ($status === 'accepted' || $status === 'approved') {
+                // কানেক্টেড পার্টনারের আইডি আলাদা করা
+                $connectedUserIds[] = ($connection->user_id == $authId) ? $connection->partner_id : $connection->user_id;
+            } elseif ($status === 'pending' && $connection->user_id == $authId) {
+                // আমি যাদের রিকোয়েস্ট পাঠিয়েছি এবং এখনো পেন্ডিং আছে
+                $pendingSentIds[] = $connection->partner_id;
             }
         }
 
-        return view('leaderboard.index', compact('leaderboard', 'connectedUserIds', 'pendingSentIds', 'pendingReceivedIds'));
+        // ৩. সব ডাটা একসাথে ব্লেড ভিউতে পাস করা
+        return view('leaderboard.index', compact('leaderboard', 'connectedUserIds', 'pendingSentIds'));
     }
 }

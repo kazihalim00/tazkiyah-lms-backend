@@ -17,15 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
+        // Registering middleware aliases correctly inside the array
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
-           
-            // Register the admin middleware alias
-            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
-
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
-
-        //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

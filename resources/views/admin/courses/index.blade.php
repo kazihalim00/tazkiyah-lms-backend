@@ -1,55 +1,127 @@
 @extends('layouts.app')
-@section('title', 'Manage Courses')
+
+@section('title', 'Admin - Course Management')
 
 @section('content')
-@include('admin.nav')
+    <div class="max-w-6xl mx-auto space-y-8">
 
-<div class="max-w-6xl mx-auto mt-10">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-gray-800">Manage Courses</h2>
-        <a href="{{ route('admin.courses.create') }}" class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition shadow-sm">
-            + Add New Course
-        </a>
-    </div>
+        <!-- Admin Control Header -->
+        <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-800">
+            <div class="space-y-1">
+                <span
+                    class="bg-indigo-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    Control Center
+                </span>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight">LMS Admin Dashboard</h1>
+                <p class="text-slate-400 text-xs font-medium">Manage your spiritual development courses, structured modules,
+                    and lessons.</p>
+            </div>
 
-    @if(session('success'))
-        <div class="bg-emerald-100 text-emerald-800 p-4 rounded-lg mb-6 font-semibold">
-            {{ session('success') }}
+            <!-- Action Trigger Buttons Zone -->
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('admin.courses.create') }}"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-5 py-3 rounded-xl transition shadow-md flex items-center gap-2">
+                    ➕ Create Course
+                </a>
+                <a href="{{ route('admin.modules.create') }}"
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-4 py-3 rounded-xl transition">
+                    📦 Add Module
+                </a>
+                <a href="{{ route('admin.lessons.create') }}"
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-4 py-3 rounded-xl transition">
+                    📝 Add Lesson
+                </a>
+            </div>
         </div>
-    @endif
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-gray-50 border-b border-gray-100 text-gray-600">
-                    <th class="p-4 font-semibold">Title</th>
-                    <th class="p-4 font-semibold">Description</th>
-                    <th class="p-4 font-semibold text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($courses as $course)
-                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
-                        <td class="p-4 font-medium text-gray-800">{{ $course->title }}</td>
-                        <td class="p-4 text-gray-600 truncate max-w-xs">{{ $course->description ?? 'No description added' }}</td>
-                        
-                        <td class="p-4 text-right flex justify-end gap-3">
-                            <a href="{{ route('admin.courses.edit', $course->id) }}" class="text-blue-500 font-bold hover:underline">Edit</a>
+        <!-- Overview Stats Tracker -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                <p class="text-xs font-bold text-gray-400 uppercase">Total System Courses</p>
+                <p class="text-2xl font-black text-gray-900 mt-1">{{ $courses->count() }}</p>
+            </div>
+            <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                <p class="text-xs font-bold text-gray-400 uppercase">Configured Modules</p>
+                <p class="text-2xl font-black text-indigo-600 mt-1">{{ \App\Models\Module::count() ?? 0 }}</p>
+            </div>
+            <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm col-span-2 sm:col-span-1">
+                <p class="text-xs font-bold text-gray-400 uppercase">Published Lessons</p>
+                <p class="text-2xl font-black text-emerald-600 mt-1">{{ \App\Models\Lesson::count() ?? 0 }}</p>
+            </div>
+        </div>
 
-                            <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this course? All modules and lessons under it will also be deleted!');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-500 font-bold hover:underline">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="3" class="p-8 text-center text-gray-500">No courses found. Add one to get started!</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <!-- Course Datatable List -->
+        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-50 flex items-center justify-between">
+                <h2 class="text-lg font-extrabold text-gray-900">Active Course Repositories</h2>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr
+                            class="bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-wider border-b border-gray-100">
+                            <th class="py-4 px-6">Course Identity & Cover</th>
+                            <th class="py-4 px-6">Structured Architecture</th>
+                            <th class="py-4 px-6 text-right">Administrative Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 text-sm font-medium text-gray-600">
+                        @forelse($courses as $course)
+                            <tr class="hover:bg-gray-50/50 transition">
+                                <td class="py-4 px-6 flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xl shrink-0">
+                                        📚
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-950 tracking-tight">{{ $course->title }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5 max-w-xs truncate">
+                                            {{ $course->description ?? 'No specific module details.' }}
+                                        </p>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex gap-3 text-xs">
+                                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-bold">
+                                            {{ $course->modules->count() ?? 0 }} Modules
+                                        </span>
+                                        <span class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md font-bold">
+                                            {{ $course->lessons->count() ?? 0 }} Total Lessons
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('admin.courses.edit', $course->id) }}"
+                                            class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition">
+                                            Edit
+                                        </a>
+                                        <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this course?')"
+                                            class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="py-12 text-center text-gray-400 font-bold">
+                                    📭 No courses have been registered in the system database yet.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
-</div>
 @endsection
