@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Http\Controllers\AccountabilityPartnerController;
+use App\Http\Controllers\FeedController;
 use App\Models\ChatLog;
 use App\Models\Course;
 use App\Models\LessonCompletion;
@@ -55,7 +56,7 @@ Route::post('/register', function (Request $request) {
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
         'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        'gender' => 'required|string|in:male,female' // Strictly validating the gender selection
+        'gender' => 'required|string|in:male,female'
     ]);
 
     $imagePath = null;
@@ -71,7 +72,7 @@ Route::post('/register', function (Request $request) {
         'role' => 'user',
         'is_admin' => 0,
         'image' => $imagePath,
-        'gender' => $request->gender, // Saving the validated gender to the database
+        'gender' => $request->gender,
         'total_points' => 0,
     ]);
 
@@ -181,6 +182,21 @@ Route::post('/profile/update', function (Request $request) {
 
     return back()->with('success', 'Profile updated successfully!');
 })->name('profile.update')->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| Community Feed, Likes & Comments Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/feed', [FeedController::class, 'index'])->name('feed.index');
+    Route::post('/feed', [FeedController::class, 'store'])->name('feed.store');
+
+    // Dynamic interaction routes for posts
+    Route::post('/feed/posts/{post}/like', [FeedController::class, 'toggleLike'])->name('posts.like');
+    Route::post('/feed/posts/{post}/comments', [FeedController::class, 'storeComment'])->name('comments.store');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -297,6 +313,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Module management
     Route::get('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'index'])->name('modules.index');
+
     Route::get('/modules/create', [\App\Http\Controllers\Admin\ModuleController::class, 'create'])->name('modules.create');
     Route::post('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'store'])->name('modules.store');
     Route::get('/modules/{module}/edit', [\App\Http\Controllers\Admin\ModuleController::class, 'edit'])->name('modules.edit');

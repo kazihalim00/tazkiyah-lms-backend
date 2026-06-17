@@ -1,32 +1,81 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\FeedPost;
-use Illuminate\Support\Facades\Http;
+use App\Models\Post;
+use App\Models\Like;
+use App\Models\Comment;
+use Illuminate\Support\Facades\Auth;
 
 class FeedController extends Controller
 {
+    /**
+     * Display the community feed with all posts, likes, and comments.
+     */
     public function index()
     {
-
-        // Use query builder instead of unknown model class `FeedPost`
-        $posts = \DB::table('feed_posts')->orderBy('created_at', 'desc')->get();
-
-
-        $weatherData = Http::get("http://api.openweathermap.org/data/2.5/weather?q=Sylhet&appid=YOUR_API_KEY")->json();
-
-        $condition = $weatherData['weather'][0]['main'] ?? 'Clear';
-        $message = $this->getDuaByWeather($condition);
-
-        return view('feed', compact('posts', 'message'));
+        // Eager load relationships to optimize queries and avoid N+1 issues
+        $posts = Post::with(['user', 'likes', 'comments.user'])->latest()->get();
+        return view('feed.index', compact('posts'));
     }
 
-
-    private function getDuaByWeather($condition)
+    public function store(Request $request)
     {
-        if ($condition == 'Rain')
-            return "বৃষ্টির সময় আল্লাহর রহমত বর্ষিত হয়। এই দোয়াটি পড়ুন: আল্লাহুম্মা সাইয়্যিবান নাফিয়া।";
-        return "আলহামদুলিল্লাহ, আজকের দিনটি বরকতময় হোক!";
+        $request->validate([
+            'content' => 'required|string|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('posts', 'public');
+        }
+
+        Post::create([
+            'user_id' => Auth::id(),
+            'content' => $request->input('content'),
+            'image' => $imagePath,
+        ]);
+
+        return back()->with('success', 'Your post has been published!');
+    }
+
+    /**
+     * Toggle like/unlike for a specific post.
+     */
+    public function toggleLike($postId)
+    {
+        $userId = Auth::id();
+        $existingLike = Like::where('user_id', $userId)->where('post_id', $postId)->first();
+
+        if ($existingLike) {
+            $existingLike->delete(); // Unlike if already liked
+        } else {
+            Like::create([
+                'user_id' => $userId,
+                'post_id' => $postId
+            ]); // Like if not liked yet
+        }
+
+        return back();
+    }
+
+    /**
+     * Store a comment for a specific post.
+     */
+    public function storeComment(Request $request, $postId)
+    {
+        $request->validate([
+            'content' => 'required|string|max:500',
+        ]);
+
+        Comment::create([
+            'user_id' => Auth::id(),
+            'post_id' => $postId,
+            'content' => $request->input('content'),
+        ]);
+
+        return back()->with('success', 'Comment added successfully!');
     }
 }

@@ -87,4 +87,8 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'accountability_partners', 'user_id', 'partner_id')
             ->wherePivot('status', 'accepted');
     }
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
 }
