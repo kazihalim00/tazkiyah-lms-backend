@@ -8,18 +8,22 @@ return new class extends Migration {
     /**
      * Run the migrations.
      */
-    public function up(): void
+
+    public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            // default(false) মানে সবাই সাধারণ ইউজার, যাকে true করে দেওয়া হবে সে অ্যাডমিন
-            $table->boolean('is_admin')->default(false)->after('email');
+        Schema::table('users', function ($table) {
+            if (!Schema::hasColumn('users', 'is_admin')) {
+                $table->boolean('is_admin')->default(0)->after('email');
+            }
         });
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('is_admin');
+        Schema::table('users', function ($table) {
+            if (Schema::hasColumn('users', 'is_admin')) {
+                $table->dropColumn('is_admin');
+            }
         });
     }
 };
