@@ -300,15 +300,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 */
 Route::get('/server-setup', function () {
     try {
-        // নতুন করে সব ক্যাশ ক্লিয়ার করা
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        // শুধু মাইগ্রেশন রান করা, ক্যাশ ক্লিয়ার করার কোড আপাতত বাদ দিলাম
+        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
 
-        // সব টেবিল নতুন করে তৈরি করা
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-
-        return 'আলহামদুলিল্লাহ! Database Migration Completed Successfully!';
+        return 'আলহামদুলিল্লাহ! Database Freshly Migrated Successfully!';
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
