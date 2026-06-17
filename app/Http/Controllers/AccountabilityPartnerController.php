@@ -33,7 +33,7 @@ class AccountabilityPartnerController extends Controller
 
         // 2. Fetch pending requests received by the authenticated user
         $pendingRequests = AccountabilityPartner::where('partner_id', $user->id)
-            ->where('status', 'pending')
+            ->where('status', '=', 'pending')
             ->with('user')
             ->get();
 

@@ -21,7 +21,7 @@ class User extends Authenticatable
         'image',
         'role',
         'timezone',
-        'gender',       
+        'gender',
         'total_points',
     ];
 
@@ -66,17 +66,16 @@ class User extends Authenticatable
         $points = $this->total_points ?? 0;
 
         if ($points >= 5000)
-            return 'Mumin (মুমিন)';
+            return 'Mumin';
         if ($points >= 2500)
-            return 'Devoted (নিবেদিত)';
+            return 'Devoted';
         if ($points >= 1000)
-            return 'Seeker (অনুসন্ধানী)';
+            return 'Seeker';
         if ($points >= 300)
-            return 'Consistent (ধারাবাহিক)';
+            return 'Consistent';
 
-        return 'Beginner (শিক্ষানবিস)';
+        return 'Beginner';
     }
-
     public function myPartners()
     {
         return $this->belongsToMany(User::class, 'accountability_partners', 'partner_id', 'user_id')

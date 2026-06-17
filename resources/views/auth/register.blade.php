@@ -58,7 +58,19 @@
                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="••••••••">
             </div>
-
+            <!-- Gender Selection Field -->
+            <div class="mb-4">
+                <label for="gender" class="block text-sm font-bold text-gray-700 mb-2">Gender</label>
+                <select name="gender" id="gender" required
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-gray-700 bg-white transition">
+                    <option value="" disabled selected>Select your gender</option>
+                    <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                    <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                </select>
+                @error('gender')
+                    <p class="text-red-500 text-xs font-bold mt-1">{{ $message }}</p>
+                @enderror
+            </div>
             <div class="mb-6">
                 <label for="image" class="block text-sm font-medium text-gray-700">Profile Image (Optional)</label>
                 <input type="file" name="image" id="image" accept="image/*"

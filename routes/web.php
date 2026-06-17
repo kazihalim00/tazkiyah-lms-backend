@@ -49,11 +49,13 @@ Route::get('/register', function () {
 })->name('register');
 
 Route::post('/register', function (Request $request) {
+    // Validate the incoming request data including gender
     $request->validate([
         'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'gender' => 'required|string|in:male,female' // Strictly validating the gender selection
     ]);
 
     $imagePath = null;
@@ -61,6 +63,7 @@ Route::post('/register', function (Request $request) {
         $imagePath = $request->file('image')->store('profiles', 'public');
     }
 
+    // Create the user with the selected gender
     $user = User::create([
         'name' => $request->name,
         'email' => $request->email,
@@ -68,6 +71,7 @@ Route::post('/register', function (Request $request) {
         'role' => 'user',
         'is_admin' => 0,
         'image' => $imagePath,
+        'gender' => $request->gender, // Saving the validated gender to the database
         'total_points' => 0,
     ]);
 
@@ -94,23 +98,22 @@ Route::get('/profile', function () {
 
 Route::get('/my-dashboard', function () {
     $user = Auth::user();
-    $points = $user->total_points;
-    $badge = 'Seeker';
 
-    if ($points >= 50)
-        $badge = 'Fajr Warrior';
-    if ($points >= 150)
-        $badge = 'Consistent Believer';
-    if ($points >= 300)
-        $badge = 'Tazkiyah Master';
+    // Get total points directly from authenticated user
+    $points = $user->total_points ?? 0;
+
+    // Use the dynamic accessor level we created in the User model
+    $badge = $user->level;
 
     $chartLabels = [];
     $chartData = [];
 
+    // Loop through the last 7 days to calculate accurate daily scores
     for ($i = 6; $i >= 0; $i--) {
         $date = Carbon::now()->subDays($i)->format('Y-m-d');
         $chartLabels[] = Carbon::parse($date)->format('M d');
 
+        // Fetch the tracker record for the specific date
         $tracker = IbadahTracker::where('user_id', $user->id)
             ->whereDate('date', $date)
             ->first();
@@ -118,14 +121,39 @@ Route::get('/my-dashboard', function () {
         $dailyScore = 0;
 
         if ($tracker) {
-            if ($tracker->fajr === 'Jamaah')
-                $dailyScore += 10;
-            elseif ($tracker->fajr === 'Alone')
-                $dailyScore += 5;
+            // 1. Calculate points for all 5 Farz prayers
+            $prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+            foreach ($prayers as $prayer) {
+                if ($tracker->$prayer === 'jamaah_mosque') {
+                    $dailyScore += 10;
+                } elseif ($tracker->$prayer === 'jamaah_home') {
+                    $dailyScore += 7;
+                } elseif ($tracker->$prayer === 'alone') {
+                    $dailyScore += 5;
+                } elseif ($tracker->$prayer === 'qada') {
+                    $dailyScore += 2;
+                }
+            }
 
-            if ($tracker->morning_adhkar)
-                $dailyScore += 5;
+            // 2. Calculate points for Sunnah, Adhkar, and Good Deeds (5 points each)
+            $deeds = ['morning_adhkar', 'evening_adhkar', 'tahajjud', 'witr', 'sadaqah', 'duwa'];
+            foreach ($deeds as $deed) {
+                if ($tracker->$deed == 1) {
+                    $dailyScore += 5;
+                }
+            }
+
+            // 3. Calculate points for Quran Recitation (2 points per page)
+            if ($tracker->quran_pages > 0) {
+                $dailyScore += ($tracker->quran_pages * 2);
+            }
+
+            // 4. Add points based on Khushu Level (Focus level equals to points)
+            if ($tracker->khushu_level > 0) {
+                $dailyScore += $tracker->khushu_level;
+            }
         }
+
         $chartData[] = $dailyScore;
     }
 

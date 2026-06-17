@@ -71,59 +71,70 @@ class IbadahTrackerController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        $data = $request->except(['_token']);
-        $data['user_id'] = $user->id;
-        $data['date'] = \Carbon\Carbon::now()->format('Y-m-d');
+        $date = $request->input('date', \Carbon\Carbon::now()->format('Y-m-d'));
 
-        // 1. Calculate points for today
-        $newPoints = 0;
-        $prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+        // Find existing tracker or create a new instance
+        $tracker = \App\Models\IbadahTracker::firstOrNew([
+            'user_id' => $user->id,
+            'date' => $date
+        ]);
 
-        foreach ($prayers as $p) {
-            if ($user->gender == 'male') {
-                if ($request->$p == 'jamaah_mosque')
-                    $newPoints += 10;
-                elseif (in_array($request->$p, ['jamaah_home', 'alone']))
-                    $newPoints += 5;
-            } else {
-                // Female full points for timely prayer
-                if (in_array($request->$p, ['jamaah_home', 'alone', 'jamaah_mosque']))
-                    $newPoints += 10;
+        // Assign request data to tracker fields
+        $tracker->fajr = $request->fajr;
+        $tracker->dhuhr = $request->dhuhr;
+        $tracker->asr = $request->asr;
+        $tracker->maghrib = $request->maghrib;
+        $tracker->isha = $request->isha;
+        $tracker->morning_adhkar = $request->has('morning_adhkar') ? 1 : 0;
+        $tracker->evening_adhkar = $request->has('evening_adhkar') ? 1 : 0;
+        $tracker->tahajjud = $request->has('tahajjud') ? 1 : 0;
+        $tracker->witr = $request->has('witr') ? 1 : 0;
+        $tracker->sadaqah = $request->has('sadaqah') ? 1 : 0;
+        $tracker->duwa = $request->has('duwa') ? 1 : 0;
+        $tracker->khushu_level = $request->input('khushu_level', 5);
+        $tracker->quran_pages = $request->input('quran_pages', 0);
+        $tracker->save();
+
+        // Recalculate lifetime total points for the user to keep it strictly synced
+        $allTrackers = \App\Models\IbadahTracker::where('user_id', $user->id)->get();
+        $totalPoints = 0;
+
+        foreach ($allTrackers as $t) {
+            // 1. Obligatory Prayers Points
+            $prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+            foreach ($prayers as $prayer) {
+                if ($t->$prayer === 'jamaah_mosque')
+                    $totalPoints += 10;
+                elseif ($t->$prayer === 'jamaah_home')
+                    $totalPoints += 7;
+                elseif ($t->$prayer === 'alone')
+                    $totalPoints += 5;
+                elseif ($t->$prayer === 'qada')
+                    $totalPoints += 2;
+            }
+
+            // 2. Sunnah & Good Deeds Points
+            $deeds = ['morning_adhkar', 'evening_adhkar', 'tahajjud', 'witr', 'sadaqah', 'duwa'];
+            foreach ($deeds as $deed) {
+                if ($t->$deed == 1)
+                    $totalPoints += 5;
+            }
+
+            // 3. Quran Recitation Points (2 points per page)
+            if ($t->quran_pages > 0) {
+                $totalPoints += ($t->quran_pages * 2);
+            }
+
+            // 4. Khushu Level Points
+            if ($t->khushu_level > 0) {
+                $totalPoints += $t->khushu_level;
             }
         }
 
-        if ($request->has('morning_adhkar'))
-            $newPoints += 2;
-        if ($request->has('sadaqah'))
-            $newPoints += 5;
-
-        // 2. Check if an entry already exists for today to avoid duplicate points
-        $existingTracker = IbadahTracker::where('user_id', $user->id)
-            ->where('date', $data['date'])
-            ->first();
-
-        if ($existingTracker) {
-            // Option A: If you want to replace points, subtract old and add new
-            // $user->total_points = ($user->total_points - $existingTracker->points_earned_today) + $newPoints;
-
-            // OR Option B (Simpler): Just update the tracker, and add only the difference if needed.
-            // For now, let's keep it simple: we update the tracker.
-        }
-
-        // 3. Save the tracker entry
-        // It's better to store the points earned today in the tracker table itself
-        $data['points_earned_today'] = $newPoints;
-
-        IbadahTracker::updateOrCreate(
-            ['user_id' => $user->id, 'date' => $data['date']],
-            $data
-        );
-
-        // 4. Update User total points (Safe way)
-        // Here we update the total points. Ideally, use an Observer or calculate on the fly.
-        $user->total_points = IbadahTracker::where('user_id', $user->id)->sum('points_earned_today');
+        // Update user's cumulative total points in the database
+        $user->total_points = $totalPoints;
         $user->save();
 
-        return back()->with('success', 'Alhamdulillah! Your progress saved. You earned ' . $newPoints . ' points for today.');
+        return back()->with('success', "Today's spiritual progress saved successfully!");
     }
 }
