@@ -1,4 +1,5 @@
-FROM php:8.2-apache
+# এখানে PHP 8.4 ব্যবহার করা হলো
+FROM php:8.4-apache
 
 # Install dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -24,6 +25,7 @@ COPY . /var/www/html/
 
 # Install Composer and project dependencies
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --optimize-autoloader
 
 # Set perfect permissions for Laravel
