@@ -16,6 +16,7 @@ use App\Http\Controllers\ChatController;
 use App\Models\Course;
 use App\Models\LessonCompletion;
 use Illuminate\Support\Facades\Artisan; // <-- Artisan অ্যাড করা হয়েছে
+use App\Http\Controllers\Admin\SeerahController;
 
 /*
 |--------------------------------------------------------------------------
@@ -268,6 +269,9 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
+    Route::get('/seerah', [SeerahController::class, 'index'])->name('admin.seerah.index');
+    Route::get('/seerah/upload', [SeerahController::class, 'create'])->name('admin.seerah.create');
+    Route::post('/seerah/upload', [SeerahController::class, 'store'])->name('admin.seerah.store');
     // Course management
     Route::get('/courses', [\App\Http\Controllers\Admin\CourseController::class, 'index'])->name('courses.index');
     Route::get('/courses/create', [\App\Http\Controllers\Admin\CourseController::class, 'create'])->name('courses.create');
