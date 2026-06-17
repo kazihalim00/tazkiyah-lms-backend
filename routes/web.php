@@ -293,17 +293,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/lessons/{lesson}', [\App\Http\Controllers\Admin\LessonController::class, 'destroy'])->name('lessons.destroy');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Hard Reset Server Setup Route
-|--------------------------------------------------------------------------
-*/
 Route::get('/server-setup', function () {
     try {
-        // নতুন করে টেবিল তৈরি করার চেষ্টা
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        // --force ব্যবহার করা হচ্ছে যাতে কোনো বাধা ছাড়া মাইগ্রেশন হয়
+        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
 
-        return 'আলহামদুলিল্লাহ! মাইগ্রেশন কমান্ড রান হয়েছে। চেক করো টেবিল তৈরি হয়েছে কি না!';
+        return 'আলহামদুলিল্লাহ! Database Freshly Migrated Successfully!';
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
