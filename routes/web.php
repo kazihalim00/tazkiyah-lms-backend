@@ -300,19 +300,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 */
 Route::get('/server-setup', function () {
     try {
-        // ১. সরাসরি ক্যাশ ফাইলগুলো ফিজিক্যালি ডিলিট করা
-        @unlink(base_path('bootstrap/cache/config.php'));
-        @unlink(base_path('bootstrap/cache/routes.php'));
-        @unlink(base_path('bootstrap/cache/services.php'));
-        @unlink(base_path('bootstrap/cache/packages.php'));
+        // নতুন করে সব ক্যাশ ক্লিয়ার করা
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
 
-        // ২. নতুন করে মাইগ্রেশন রান করা
+        // সব টেবিল নতুন করে তৈরি করা
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
 
-        // (সিডার থাকলে নিচের লাইনের সামনের // মুছে দাও)
-        // \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
-
-        return 'আলহামদুলিল্লাহ! Cache Cleared and Database Migration Completed Successfully!';
+        return 'আলহামদুলিল্লাহ! Database Migration Completed Successfully!';
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
