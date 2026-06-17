@@ -56,7 +56,7 @@ Route::post('/register', function (Request $request) {
         'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         'gender' => 'required|string|in:male,female'
     ]);
 
@@ -104,7 +104,7 @@ Route::middleware(['auth'])->group(function () {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120'
         ]);
 
         $user->name = $request->name;

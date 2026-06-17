@@ -14,7 +14,10 @@ RUN apt-get update && apt-get install -y \
 
 # Enable Apache mod_rewrite for Laravel routing
 RUN a2enmod rewrite
-
+RUN { \
+    echo 'upload_max_filesize = 10M'; \
+    echo 'post_max_size = 12M'; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
 # Change Apache DocumentRoot to Laravel's public folder
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf

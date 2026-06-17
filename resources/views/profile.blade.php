@@ -38,7 +38,7 @@
                         <h3 class="text-lg font-bold text-gray-800 mb-1">Profile Photo</h3>
                         <input type="file" name="image" accept="image/*"
                             class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 w-full">
-                        <p class="text-xs text-gray-400 mt-2">JPG, JPEG or PNG. Max size of 2MB.</p>
+                        <p class="text-xs text-gray-400 mt-2">JPG, JPEG or PNG. Max size of 5MB.</p>
                         @error('image') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
