@@ -35,12 +35,8 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # --- অটোমেটিক মাইগ্রেশনের জন্য এন্ট্রি পয়েন্ট সেটআপ ---
-RUN echo '#!/bin/bash\n\
-    set -e\n\
-    echo "Running migrations..."\n\
-    php artisan migrate --force\n\
-    echo "Starting Apache..."\n\
-    exec apache2-foreground' > /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["entrypoint.sh"]
 
