@@ -13,18 +13,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+
+        $middleware->trustProxies(at: '*');
+
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        // Registering middleware aliases correctly inside the array
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+
         $exceptions->shouldRenderJsonWhen(
-            fn(Request $request) => $request->is('api/*'),
+            fn(Request $request) => $request->is('api/*')
         );
-    })->create();
+
+    })
+    ->create();

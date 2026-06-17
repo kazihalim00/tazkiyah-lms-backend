@@ -16,19 +16,20 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request)
     {
-        $user = $request->user();
-        $user->fill($request->validated());
+        $user = auth()->user();
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+        if ($request->hasFile('image')) {
+    
+            $imagePath = $request->file('image')->store('profiles', 'public');
+            $user->image = $imagePath;
         }
 
-
-        $user->gender = $request->gender;
+        $user->name = $request->name;
+        $user->email = $request->email;
         $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
 }
