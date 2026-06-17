@@ -24,6 +24,27 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+        // Migration for feed_posts
+        Schema::create('feed_posts', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->text('content');
+            $table->string('type'); // 'hadith', 'ayah', 'general', 'help'
+            $table->string('image_path')->nullable();
+            $table->timestamps();
+        });
+
+        // Migration for companions
+        Schema::create('companions', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id'); // মূল ইউজার
+            $table->unsignedBigInteger('partner_id'); // সঙ্গী বা বন্ধু
+            $table->string('status')->default('active'); // active, pending, blocked
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('partner_id')->references('id')->on('users');
+        });
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

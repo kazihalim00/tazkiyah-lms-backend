@@ -1,63 +1,95 @@
 @extends('layouts.app')
-@section('title', $lesson->title)
-@section('header_title', 'Lesson')
+
+@section('title', $lesson->title . ' - Tazkiyah')
+@section('header_title', 'Lesson Viewer')
 
 @section('content')
-        <div class="max-w-5xl mx-auto">
-        <a href="{{ url('/lms/' . $lesson->module->course_id) }}"
-            class="text-indigo-600 font-bold mb-6 inline-block hover:underline">
-            ← Back to Course Modules
-        </a>
+    <div class="max-w-4xl mx-auto">
 
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h1 class="text-3xl font-bold text-gray-800 mb-6">{{ $lesson->title }}</h1>
+        <!-- Top Navigation -->
+        <div class="flex items-center justify-between mb-6">
+            <a href="{{ url()->previous() }}"
+                class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition font-medium">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Back to Curriculum
+            </a>
 
-                @if($lesson->content_type === 'video')
-                    <div class="aspect-video w-full mb-8 overflow-hidden rounded-2xl bg-gray-900">
-                        <iframe class="w-full h-full" src="{{ $lesson->content }}" frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen>
-                        </iframe>
+            <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-md uppercase tracking-wider">
+                Lesson
+            </span>
+        </div>
+
+        <!-- Lesson Content Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+
+            <!-- Video Player Placeholder (If video URL exists) -->
+            @if(isset($lesson->video_url) && $lesson->video_url)
+                <div class="aspect-video bg-gray-900 flex items-center justify-center relative">
+                    <!-- Replace this with actual iframe/video tag later -->
+                    <div class="text-center text-gray-400">
+                        <svg class="w-16 h-16 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
+                        </svg>
+                        <p class="font-medium">Video Player ({{ $lesson->video_url }})</p>
                     </div>
-                @else
-                    <div class="prose prose-indigo max-w-none text-gray-700 leading-relaxed">
-                        {!! $lesson->content !!}
+                </div>
+            @else
+                <!-- Reading Material Header -->
+                <div class="h-32 bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center px-8 relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
                     </div>
+                    <h1 class="text-3xl font-bold text-white z-10">{{ $lesson->title }}</h1>
+                </div>
+            @endif
+
+            <div class="p-8">
+                @if(isset($lesson->video_url) && $lesson->video_url)
+                    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ $lesson->title }}</h1>
                 @endif
-            </div>
 
-            <div class="mt-8 flex justify-end items-center">
-
-                <form action="{{ route('lesson.complete', $lesson->id) }}" method="POST">
-                    @csrf
-                    <div class="mt-8 flex justify-between items-center border-t border-gray-100 pt-6">
-
-                        @php
-
-    $isCompleted = \App\Models\LessonCompletion::where('user_id', auth()->id())
-        ->where('lesson_id', $lesson->id)
-        ->exists();
-                        @endphp
-
-                        @if($isCompleted)
-                            <button disabled
-                                class="bg-gray-100 text-emerald-600 border-2 border-emerald-500 px-8 py-3 rounded-xl font-bold cursor-not-allowed shadow-sm flex items-center gap-2">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Completed
-                            </button>
-                        @else
-                            <form action="{{ route('lesson.complete', $lesson->id) }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                    class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm">
-                                    Complete Lesson
-                                </button>
-                            </form>
-                        @endif
-                    </div>
-                </form>
+                <!-- Lesson Text / Content -->
+                <div class="prose max-w-none text-gray-600 leading-relaxed">
+                    {!! nl2br(e($lesson->content ?? 'No detailed content has been provided for this lesson yet.')) !!}
+                </div>
             </div>
         </div>
+
+        <!-- Completion Action -->
+        <div
+            class="bg-gray-50 border border-gray-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <h4 class="text-lg font-bold text-gray-800">Finished this lesson?</h4>
+                <p class="text-gray-500 text-sm">Marking this as complete will update your course progress.</p>
+            </div>
+
+            @php
+                $isCompleted = \App\Models\LessonCompletion::where('user_id', auth()->id())
+                    ->where('lesson_id', $lesson->id)
+                    ->exists();
+            @endphp
+
+            @if($isCompleted)
+                <div class="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-6 py-3 rounded-xl font-bold">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    Completed
+                </div>
+            @else
+                <form action="{{ route('lesson.complete', $lesson->id) }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                        class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-sm w-full sm:w-auto">
+                        Mark as Complete
+                    </button>
+                </form>
+            @endif
+        </div>
+
+    </div>
 @endsection

@@ -13,6 +13,8 @@ use App\Models\ChatLog;
 use App\Models\Course;
 use App\Models\LessonCompletion;
 
+
+
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -168,34 +170,40 @@ Route::get('/noor-ai', function () {
     return view('noor-ai');
 })->middleware('auth');
 
-Route::post('/web-chat', function (Request $request) {
-    $request->validate(['message' => 'required|string']);
-    $user = Auth::user();
-    $userMessage = $request->message;
 
-    $chatLog = ChatLog::create([
-        'user_id' => $user->id,
-        'user_message' => $userMessage,
-    ]);
+Route::post('/web-chat', function (Request $request) {
+    $userMessage = $request->input('message');
 
     try {
-        $response = Http::post('http://127.0.0.1:5000/api/chat', ['message' => $userMessage]);
+        // এখানে তোমার পাইথন (Flask/FastAPI) সার্ভারের আসল URL বসবে
+        // সাধারণত লোকালহোস্টে এটি 5000 বা 8000 পোর্টে চলে
+        $response = Http::timeout(60)->post('http://127.0.0.1:5000/chat', [
+            'message' => $userMessage
+        ]);
 
         if ($response->successful()) {
-            $aiData = $response->json();
-            $chatLog->update([
-                'ai_response' => $aiData['response'] ?? 'I am here to listen.',
-                'mood_tag' => $aiData['mood'] ?? null,
+            $data = $response->json();
+
+            // পাইথন থেকে যেই 'reply' বা 'response' কি (key) তে ডেটা আসবে, সেটা এখানে ধরছি
+            $aiReply = $data['reply'] ?? $data['response'] ?? 'I could not process the response properly.';
+
+            return response()->json([
+                'success' => true,
+                'reply' => $aiReply
             ]);
         } else {
-            $chatLog->update(['ai_response' => 'Sorry, Noor AI is currently taking a break.']);
+            return response()->json([
+                'success' => false,
+                'reply' => 'Sorry, Noor AI server returned an error: ' . $response->status()
+            ]);
         }
     } catch (\Exception $e) {
-        $chatLog->update(['ai_response' => 'Connection to Noor AI failed.']);
+        return response()->json([
+            'success' => false,
+            'reply' => 'Failed to connect to Noor AI. Please ensure your Python AI Server is running on port 5000. Error: ' . $e->getMessage()
+        ]);
     }
-
-    return response()->json(['success' => true, 'reply' => $chatLog->ai_response]);
-})->middleware('auth');
+})->name('web.chat')->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------

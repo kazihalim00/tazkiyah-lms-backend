@@ -53,4 +53,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(ChatLog::class);
     }
+    // App\Models\User.php
+    public function companions()
+    {
+        return $this->belongsToMany(User::class, 'companions', 'user_id', 'partner_id')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
 }

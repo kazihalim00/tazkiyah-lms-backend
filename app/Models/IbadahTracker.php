@@ -17,11 +17,15 @@ class IbadahTracker extends Model
         'asr',
         'maghrib',
         'isha',
+        'khushu_level',
         'morning_adhkar',
         'evening_adhkar',
-        'quran_recitation'
+        'tahajjud',
+        'witr',
+        'quran_pages',
+        'sadaqah',
+        'journal_notes'
     ];
-
     // Relationship
     public function user()
     {
