@@ -4,6 +4,7 @@
 @section('header_title', 'Rankings')
 
 @section('content')
+
 <div class="max-w-6xl mx-auto space-y-12">
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end pt-8 pb-4">

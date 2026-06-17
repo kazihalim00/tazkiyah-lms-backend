@@ -205,11 +205,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracker', [IbadahTrackerController::class, 'store']);
 
     // Learning Management System (LMS) User Routes
-    Route::get('/courses', function () {
-        $courses = Course::latest()->get();
-        return view('courses', compact('courses'));
-    })->name('courses.catalog');
+/*
+|--------------------------------------------------------------------------
+| Course Catalog Routes
+|--------------------------------------------------------------------------
+*/
 
+    Route::get('/courses', function () {
+        $courses = \App\Models\Course::latest()->get();
+        return view('lms.index', compact('courses')); 
+    })->name('courses.catalog');
     Route::get('/lms', function () {
         $courses = Course::all();
         return view('lms', compact('courses'));

@@ -5,11 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Tazkiyah App')</title>
+
     <!-- CSS and JS Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -22,29 +24,40 @@
 
     <!-- Left Sidebar -->
     <aside class="w-64 bg-white border-r border-gray-100 flex-col hidden md:flex fixed h-full z-20">
+        <!-- Logo Section -->
         <div class="p-6 border-b border-gray-100 flex items-center gap-3">
             <div
                 class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-                T</div>
+                T
+            </div>
             <span class="text-xl font-bold text-gray-800 tracking-tight">Tazkiyah</span>
         </div>
 
+        <!-- Navigation Links -->
         <nav class="flex-1 p-4 space-y-1">
             <a href="{{ url('/my-dashboard') }}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('my-dashboard') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">Dashboard</a>
+                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('my-dashboard') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">
+                Dashboard
+            </a>
+
             <a href="{{ url('/tracker') }}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('tracker') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">Ibadah
-                Tracker</a>
+                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('tracker') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">
+                Ibadah Tracker
+            </a>
+
             <a href="{{ url('/noor-ai') }}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('noor-ai') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">Noor
-                AI</a>
+                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('noor-ai') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">
+                Noor AI
+            </a>
+
             <a href="{{ route('courses.catalog') }}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('courses.catalog') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">Courses
-                (LMS)</a>
+                class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('courses.catalog') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">
+                Courses (LMS)
+            </a>
+
             <!-- Community Feed Sidebar Link -->
             <a href="{{ route('feed.index') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition {{ Request::is('feed*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'text-gray-500 hover:bg-gray-50 hover:text-indigo-600' }}">
-                <!-- Dynamic Icon for Feed (Newspaper Style) -->
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z">
@@ -52,6 +65,7 @@
                 </svg>
                 <span>Community Feed</span>
             </a>
+
             <a href="{{ route('leaderboard.index') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition {{ Request::is('leaderboard*') ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 hover:text-indigo-600' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,6 +75,7 @@
                 </svg>
                 <span>Leaderboard</span>
             </a>
+
             <!-- Sidebar Message Chat Link -->
             @php
                 $totalUnreadMessages = 0;
@@ -89,13 +104,34 @@
                     </span>
                 @endif
             </a>
+
+            <!-- Admin Control Center -->
+            @if(auth()->check() && auth()->user()->is_admin == 1)
+                <div class="mt-6 mb-2 px-6 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                    Control Center
+                </div>
+
+                <a href="{{ route('admin.courses.index') }}"
+                    class="flex items-center gap-3 px-6 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 border-r-4 border-transparent hover:border-rose-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Admin Panel
+                </a>
+            @endif
         </nav>
 
+        <!-- Logout Form -->
         <div class="p-4 border-t border-gray-100">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition font-medium">Logout</button>
+                    class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition font-medium">
+                    Logout
+                </button>
             </form>
         </div>
     </aside>
@@ -104,30 +140,57 @@
     <main class="flex-1 md:ml-64 flex flex-col min-h-screen">
         <header
             class="bg-white border-b border-gray-100 p-4 md:px-8 flex justify-between items-center sticky top-0 z-10">
-            <div class="text-gray-800 font-semibold text-lg">@yield('header_title', 'Dashboard')</div>
+            <div class="text-gray-800 font-semibold text-lg">
+                @yield('header_title', 'Dashboard')
+            </div>
 
             <!-- Profile Dropdown with Image -->
             <div class="relative" x-data="{ open: false }">
                 <button @click="open = !open" class="flex items-center gap-3 hover:opacity-80 transition">
-                    <span class="font-bold text-gray-700 hidden sm:block">{{ auth()->user()->name ?? 'User' }}</span>
+                    <div class="hidden sm:flex items-center gap-2">
+                        <span class="font-bold text-gray-700">{{ auth()->user()->name ?? 'User' }}</span>
+
+                        @if(auth()->check() && auth()->user()->is_admin == 1)
+                            <span
+                                class="bg-rose-100 text-rose-700 text-[10px] px-2 py-0.5 rounded-md font-black uppercase tracking-wide border border-rose-200">
+                                Admin
+                            </span>
+                        @else
+                            <span
+                                class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-md font-black uppercase tracking-wide border border-indigo-100">
+                                Member
+                            </span>
+                        @endif
+                    </div>
+
                     @if(auth()->user() && auth()->user()->image)
                         <img src="{{ asset('storage/' . auth()->user()->image) }}"
                             class="h-10 w-10 rounded-full object-cover border-2 border-indigo-100 shadow-sm">
                     @else
                         <div
-                            class="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold uppercase">
+                            class="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold uppercase shadow-sm">
                             {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
                         </div>
                     @endif
                 </button>
+
+                <!-- Dropdown Menu -->
                 <div x-show="open" @click.away="open = false" x-cloak
-                    class="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                    class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+
+
+
                     <a href="{{ route('profile') }}"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">Edit Profile</a>
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 transition">
+                        Edit Profile
+                    </a>
+
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit"
-                            class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Logout</button>
+                            class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
+                            Logout
+                        </button>
                     </form>
                 </div>
             </div>

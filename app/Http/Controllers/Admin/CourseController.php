@@ -8,32 +8,29 @@ use App\Models\Course;
 
 class CourseController extends Controller
 {
-
     public function index()
     {
         $courses = Course::latest()->get();
         return view('admin.courses.index', compact('courses'));
     }
 
-
     public function create()
     {
         return view('admin.courses.create');
     }
-
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'level' => 'required|string|in:Beginner,Intermediate,Advanced',
         ]);
 
         Course::create($validated);
 
         return redirect()->route('admin.courses.index')->with('success', 'Course created successfully!');
     }
-
 
     public function edit(Course $course)
     {
@@ -42,9 +39,11 @@ class CourseController extends Controller
 
     public function update(Request $request, Course $course)
     {
+        // আপডেট করার সময়ও লেভেল চেক করা হবে
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'level' => 'required|string|in:Beginner,Intermediate,Advanced',
         ]);
 
         $course->update($validated);
