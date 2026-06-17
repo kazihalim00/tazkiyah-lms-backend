@@ -300,10 +300,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 */
 Route::get('/server-setup', function () {
     try {
-        // শুধু মাইগ্রেশন রান করা, ক্যাশ ক্লিয়ার করার কোড আপাতত বাদ দিলাম
-        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+        // নতুন করে টেবিল তৈরি করার চেষ্টা
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
 
-        return 'আলহামদুলিল্লাহ! Database Freshly Migrated Successfully!';
+        return 'আলহামদুলিল্লাহ! মাইগ্রেশন কমান্ড রান হয়েছে। চেক করো টেবিল তৈরি হয়েছে কি না!';
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
