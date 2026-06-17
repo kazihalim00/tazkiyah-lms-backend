@@ -15,6 +15,7 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ChatController;
 use App\Models\Course;
 use App\Models\LessonCompletion;
+use Illuminate\Support\Facades\Artisan; // <-- Artisan অ্যাড করা হয়েছে
 
 /*
 |--------------------------------------------------------------------------
@@ -213,7 +214,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/courses', function () {
         $courses = \App\Models\Course::latest()->get();
-        return view('lms.index', compact('courses')); 
+        return view('lms.index', compact('courses'));
     })->name('courses.catalog');
     Route::get('/lms', function () {
         $courses = Course::all();
@@ -290,4 +291,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/lessons/{lesson}/edit', [\App\Http\Controllers\Admin\LessonController::class, 'edit'])->name('lessons.edit');
     Route::put('/lessons/{lesson}', [\App\Http\Controllers\Admin\LessonController::class, 'update'])->name('lessons.update');
     Route::delete('/lessons/{lesson}', [\App\Http\Controllers\Admin\LessonController::class, 'destroy'])->name('lessons.destroy');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Temporary Route for Server Setup (Migration)
+|--------------------------------------------------------------------------
+*/
+Route::get('/server-setup', function () {
+    try {
+    
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+
+
+        Artisan::call('migrate', ['--force' => true]);
+
+    
+        Artisan::call('db:seed', ['--force' => true]);
+
+        return 'আলহামদুলিল্লাহ! Database Migration Completed Successfully!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
 });
