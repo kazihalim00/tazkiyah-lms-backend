@@ -39,7 +39,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
                 <p class="text-xs font-bold text-gray-400 uppercase">Total System Courses</p>
-                <p class="text-2xl font-black text-gray-900 mt-1">{{ $courses->count() }}</p>
+                <p class="text-2xl font-black text-gray-900 mt-1">{{ $course->modules?->count() ?? 0 }}</p>
             </div>
             <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
                 <p class="text-xs font-bold text-gray-400 uppercase">Configured Modules</p>

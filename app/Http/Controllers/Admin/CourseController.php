@@ -10,7 +10,7 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::latest()->get();
+        $courses = Course::with('modules')->latest()->get();
         return view('admin.courses.index', compact('courses'));
     }
 
