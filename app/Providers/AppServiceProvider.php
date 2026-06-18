@@ -13,12 +13,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if ($this->app->environment('production')) {
-            // এখানে Request এর বদলে SymfonyRequest ব্যবহার করুন
-            SymfonyRequest::setTrustedProxies(
-                ['0.0.0.0/0'],
-                SymfonyRequest::HEADER_X_FORWARDED_FOR | SymfonyRequest::HEADER_X_FORWARDED_PROTO | SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB
-            );
-        }
+        // if ($this->app->environment('production')) {
+        //     // এখানে Request এর বদলে SymfonyRequest ব্যবহার করুন
+        //     SymfonyRequest::setTrustedProxies(
+        //         ['0.0.0.0/0'],
+        //         SymfonyRequest::HEADER_X_FORWARDED_FOR | SymfonyRequest::HEADER_X_FORWARDED_PROTO | SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB
+        //     );
+        // }
     }
 }
