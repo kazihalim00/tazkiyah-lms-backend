@@ -2,31 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
+use App\Services\CloudinaryService; 
 
 class ProfileController extends Controller
 {
-    public function edit(Request $request): View
-    {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
-    }
-
     public function update(Request $request)
     {
         $user = auth()->user();
 
+        // ১. ডাটা ভ্যালিডেশন
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+
+        // ২. ইমেজ আপলোড হ্যান্ডল করা
         if ($request->hasFile('image')) {
-            // Render-এর লোকাল স্টোরেজের বদলে সরাসরি Cloudinary-তে আপলোড হচ্ছে
-            $imageUrl = cloudinary()->upload($request->file('image')->getRealPath())->getSecurePath();
-            $user->image = $imageUrl;
+            try {
+                // আপনার সার্ভিসটি ব্যবহার করা ভালো, কারণ এটি আপনার কনফিগারেশন হ্যান্ডেল করছে
+                $cloudinaryService = new CloudinaryService();
+                $imageUrl = $cloudinaryService->uploadImage($request->file('image'));
+
+                $user->image = $imageUrl;
+            } catch (\Exception $e) {
+                // যদি এরর হয় তবে ব্যবহারকারীকে জানান
+                return redirect()->back()->withErrors(['image' => 'Cloudinary Upload Failed: ' . $e->getMessage()]);
+            }
         }
 
+       
         $user->name = $request->name;
         $user->email = $request->email;
         $user->save();
