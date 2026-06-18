@@ -26,19 +26,18 @@ class PostController extends Controller
     {
         $request->validate([
             'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // ৫ মেগাবাইট লিমিট
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
-        $imageUrl = null;
-
+        $path = null;
         if ($request->hasFile('image')) {
-            $imageUrl = $this->cloudinary->uploadImage($request->file('image'));
+            $path = $request->file('image')->store('posts', 'public');
         }
 
         Post::create([
             'user_id' => auth()->id(),
             'content' => $request->input('content'),
-            'image' => $imageUrl,
+            'image' => $path, 
         ]);
 
         return redirect()->back()->with('success', 'Post created successfully!');
