@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema; // এটি অ্যাড করো
+use Illuminate\Support\Facades\Schema; 
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Request;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,9 +14,16 @@ class AppServiceProvider extends ServiceProvider
     {
     }
 
+
+
     public function boot(): void
     {
-        Schema::defaultStringLength(191); // এই লাইনটি যোগ করো
-        URL::forceScheme('https');
+
+        if ($this->app->environment('production')) {
+            Request::setTrustedProxies(
+                ['0.0.0.0/0'],
+                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO | Request::HEADER_X_FORWARDED_AWS_ELB
+            );
+        }
     }
 }
