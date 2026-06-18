@@ -6,7 +6,6 @@
 @section('content')
 <div class="max-w-6xl mx-auto space-y-12">
     
-    <!-- Header Section -->
     <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
             <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Community & Accountability</h1>
@@ -18,7 +17,6 @@
         </div>
     </div>
 
-    <!-- Pending Requests Section -->
     @if($pendingRequests->count() > 0)
     <div class="bg-amber-50 p-6 rounded-3xl border border-amber-200 shadow-sm">
         <h2 class="text-xl font-bold text-amber-900 mb-6 flex items-center gap-2">
@@ -32,7 +30,7 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     @if($req->user->image)
-                        <img src="{{ asset('storage/' . $req->user->image) }}" class="h-12 w-12 rounded-full object-cover border-2 border-amber-200 shadow-sm" alt="Profile">
+                        <img src="{{ $req->user->image_url }}" class="h-12 w-12 rounded-full object-cover border-2 border-amber-200 shadow-sm" alt="Profile">
                     @else
                         <div class="h-12 w-12 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-black text-xl uppercase shadow-sm">
                             {{ substr($req->user->name, 0, 1) }}
@@ -59,7 +57,6 @@
     </div>
     @endif
 
-    <!-- Active Accountability Partners Dashboard -->
     @if($activePartners->count() > 0)
     <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
         <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -71,7 +68,7 @@
                 <div class="flex justify-between items-start">
                     <div class="flex items-center gap-3">
                         @if($partner->image)
-                            <img src="{{ asset('storage/' . $partner->image) }}" class="h-12 w-12 rounded-full object-cover border-2 border-indigo-200 shadow-sm" alt="Profile">
+                            <img src="{{ $partner->image_url }}" class="h-12 w-12 rounded-full object-cover border-2 border-indigo-200 shadow-sm" alt="Profile">
                         @else
                             <div class="h-12 w-12 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold uppercase shadow-sm">
                                 {{ substr($partner->name, 0, 1) }}
@@ -87,7 +84,6 @@
                     </div>
                 </div>
                 
-                <!-- Live Prayer Checklist -->
                 <div class="bg-white p-4 rounded-xl border border-gray-100">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3">Today's Prayers Status</span>
                     <div class="grid grid-cols-5 gap-2 text-center">
@@ -112,7 +108,6 @@
     </div>
     @endif
 
-    <!-- Suggestions Section (Spans Full Width) -->
     <div class="space-y-6">
         <div class="flex items-center justify-between border-b border-gray-100 pb-4">
             <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
@@ -126,7 +121,7 @@
             @foreach($suggestedPartners as $partner)
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center transition duration-300 hover:shadow-md hover:border-indigo-100">
                 @if($partner->image)
-                    <img src="{{ asset('storage/' . $partner->image) }}" class="h-20 w-20 rounded-full object-cover border-4 border-indigo-50 shadow-md mb-4" alt="Profile">
+                    <img src="{{ $partner->image_url }}" class="h-20 w-20 rounded-full object-cover border-4 border-indigo-50 shadow-md mb-4" alt="Profile">
                 @else
                     <div class="h-20 w-20 bg-gradient-to-tr from-indigo-500 to-purple-500 text-white rounded-full flex items-center justify-center font-black text-3xl uppercase mb-4 shadow-inner">
                         {{ substr($partner->name, 0, 1) }}
