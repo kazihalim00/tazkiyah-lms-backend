@@ -78,7 +78,7 @@ Route::post('/register', function (Request $request) {
     ]);
 
     $imagePath = null;
-  
+
     if ($request->hasFile('image')) {
         $imagePath = app(\App\Services\CloudinaryService::class)->uploadImage($request->file('image'));
 
@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/profile/update', function (Request $request) {
         $user = Auth::user();
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
@@ -134,9 +135,9 @@ Route::middleware(['auth'])->group(function () {
         $user->email = $request->email;
 
         if ($request->hasFile('image')) {
-            // Replaced local storage with Cloudinary
-            $imagePath = app(\App\Services\CloudinaryService::class)->uploadImage($request->file('image'));
-            $user->image = $imagePath;
+            // Cloudinary বাদ দিয়ে লোকাল স্টোরেজ ব্যবহার করছি
+            $path = $request->file('image')->store('profiles', 'public');
+            $user->image = $path;
         }
 
         $user->save();

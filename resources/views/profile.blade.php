@@ -20,7 +20,7 @@
         <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
             <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                @method('PATCH')
+        
                 <div class="mb-8">
                     <label class="block text-sm font-bold text-gray-700 mb-4">Profile Photo</label>
                     <div class="flex items-center gap-6">
