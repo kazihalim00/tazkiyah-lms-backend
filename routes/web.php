@@ -1,38 +1,53 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Models\User;
-use App\Models\IbadahTracker;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+// --- Models ---
+use App\Models\User;
+use App\Models\IbadahTracker;
+use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\LessonCompletion;
+
+// --- User Controllers ---
 use App\Http\Controllers\Api\IbadahTrackerController;
 use App\Http\Controllers\AccountabilityPartnerController;
-use App\Http\Controllers\FeedController;
+use App\Http\Controllers\PostController; // Handles Cloudinary post uploads
+use App\Http\Controllers\FeedController; // Handles likes & comments
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ChatController;
-use App\Models\Course;
-use App\Models\LessonCompletion;
-use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\QuizController;
+
+// --- Admin Controllers ---
 use App\Http\Controllers\Admin\SeerahController;
-use App\Http\Controllers\Admin\QuizController;
+use App\Http\Controllers\Admin\QuizController as AdminQuizController;
+use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\ModuleController;
+use App\Http\Controllers\Admin\LessonController as AdminLessonController;
 
 /*
 |--------------------------------------------------------------------------
-| Authentication Routes
+| Public & Authentication Routes
 |--------------------------------------------------------------------------
 */
 
+// Redirect root to login
 Route::get('/', function () {
     return redirect('/login');
 });
 
+// Show Login Form
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
+// Handle Login Request
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => 'required|email',
@@ -47,10 +62,12 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['email' => 'Invalid credentials']);
 });
 
+// Show Registration Form
 Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
 
+// Handle Registration Request
 Route::post('/register', function (Request $request) {
     $request->validate([
         'name' => 'required|string|max:255',
@@ -62,7 +79,8 @@ Route::post('/register', function (Request $request) {
 
     $imagePath = null;
     if ($request->hasFile('image')) {
-        $imagePath = $request->file('image')->store('profiles', 'public');
+        // Replaced local storage with Cloudinary
+        $imagePath = app(\App\Services\CloudinaryService::class)->uploadImage($request->file('image'));
     }
 
     $user = User::create([
@@ -80,12 +98,14 @@ Route::post('/register', function (Request $request) {
     return redirect('/my-dashboard');
 });
 
+// Handle Logout
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
     return redirect('/login');
 })->name('logout');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -94,7 +114,7 @@ Route::post('/logout', function (Request $request) {
 */
 Route::middleware(['auth'])->group(function () {
 
-    // User Dashboard & Profile
+    // --- Profile & Dashboard ---
     Route::get('/profile', function () {
         return view('profile');
     })->name('profile');
@@ -111,7 +131,8 @@ Route::middleware(['auth'])->group(function () {
         $user->email = $request->email;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('profiles', 'public');
+            // Replaced local storage with Cloudinary
+            $imagePath = app(\App\Services\CloudinaryService::class)->uploadImage($request->file('image'));
             $user->image = $imagePath;
         }
 
@@ -127,6 +148,7 @@ Route::middleware(['auth'])->group(function () {
         $chartLabels = [];
         $chartData = [];
 
+        // Generate tracking data for the last 7 days
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i)->format('Y-m-d');
             $chartLabels[] = Carbon::parse($date)->format('M d');
@@ -138,6 +160,7 @@ Route::middleware(['auth'])->group(function () {
             $dailyScore = 0;
 
             if ($tracker) {
+                // Calculate prayer points
                 $prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
                 foreach ($prayers as $prayer) {
                     if ($tracker->$prayer === 'jamaah_mosque')
@@ -150,12 +173,14 @@ Route::middleware(['auth'])->group(function () {
                         $dailyScore += 2;
                 }
 
+                // Calculate extra deeds points
                 $deeds = ['morning_adhkar', 'evening_adhkar', 'tahajjud', 'witr', 'sadaqah', 'duwa'];
                 foreach ($deeds as $deed) {
                     if ($tracker->$deed == 1)
                         $dailyScore += 5;
                 }
 
+                // Quran and Khushu points
                 if ($tracker->quran_pages > 0)
                     $dailyScore += ($tracker->quran_pages * 2);
                 if ($tracker->khushu_level > 0)
@@ -168,28 +193,30 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard', compact('user', 'points', 'badge', 'chartLabels', 'chartData'));
     });
 
-    // Community Feed, Likes & Comments
-    Route::get('/feed', [FeedController::class, 'index'])->name('feed.index');
-    Route::post('/feed', [FeedController::class, 'store'])->name('feed.store');
+    // --- Community Feed & Social Posts ---
+    // Updated to use PostController for the main feed and post creation (handles Cloudinary)
+    Route::get('/feed', [PostController::class, 'index'])->name('feed.index');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    // Likes & Comments handled by FeedController
     Route::post('/feed/posts/{post}/like', [FeedController::class, 'toggleLike'])->name('posts.like');
     Route::post('/feed/posts/{post}/comments', [FeedController::class, 'storeComment'])->name('comments.store');
-
-    // Comment Support Likes & Nested Replies
     Route::post('/comment/{comment}/like', [FeedController::class, 'toggleCommentLike'])->name('comments.like');
     Route::post('/comment/{comment}/reply', [FeedController::class, 'storeReply'])->name('comments.reply');
 
-    // Global Leaderboard & Partner Chat
+    // --- Global Leaderboard & Partner Chat ---
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
     Route::get('/messages/{partner?}', [ChatController::class, 'index'])->name('chat.index');
     Route::post('/messages/{partner}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
 
-    // Accountability Partner Management
+    // --- Accountability Partner Management ---
     Route::get('/community', [AccountabilityPartnerController::class, 'index'])->name('community.index');
     Route::post('/partner/request/{id}', [AccountabilityPartnerController::class, 'sendRequest'])->name('partner.request');
     Route::post('/partner/accept/{id}', [AccountabilityPartnerController::class, 'acceptRequest'])->name('partner.accept');
     Route::post('/partner/reject/{id}', [AccountabilityPartnerController::class, 'rejectRequest'])->name('partner.reject');
 
-    // Fixed & Unified Ibadah Tracker Route with Spiritual Lessons
+    // --- Ibadah Tracker ---
     Route::get('/tracker', function () {
         $lessons = [
             "\"Verily, in the remembrance of Allah do hearts find rest.\" (Ar-Rad: 28) - Make today count by keeping your tongue moist with Adhkar.",
@@ -205,11 +232,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/tracker', [IbadahTrackerController::class, 'store']);
 
-    // Learning Management System (LMS) User Routes
+    // --- Learning Management System (LMS) User Routes ---
     Route::get('/courses', function () {
-        $courses = \App\Models\Course::latest()->get();
+        $courses = Course::latest()->get();
         return view('lms.index', compact('courses'));
     })->name('courses.catalog');
+
     Route::get('/lms', function () {
         $courses = Course::all();
         return view('lms', compact('courses'));
@@ -222,7 +250,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('lms.show');
 
     Route::get('/lesson/{id}', function ($id) {
-        $lesson = \App\Models\Lesson::findOrFail($id);
+        $lesson = Lesson::findOrFail($id);
         return view('lesson-view', compact('lesson'));
     })->name('lesson.view');
 
@@ -231,17 +259,19 @@ Route::middleware(['auth'])->group(function () {
         return back()->with('success', 'Lesson completed successfully!');
     })->name('lesson.complete');
 
-    // Quiz Routes
-    Route::get('/quiz/{id}', [App\Http\Controllers\QuizController::class, 'show'])->name('quizzes.show');
-    Route::post('/quiz/{id}/submit', [App\Http\Controllers\QuizController::class, 'submit'])->name('quizzes.submit');
+    // --- User Quizzes ---
+    Route::get('/quiz/{id}', [QuizController::class, 'show'])->name('quizzes.show');
+    Route::post('/quiz/{id}/submit', [QuizController::class, 'submit'])->name('quizzes.submit');
 
-    // Noor AI Chatbot Core Integration
+    // --- Noor AI Chatbot Integration ---
     Route::get('/noor-ai', function () {
         return view('noor-ai');
     })->name('noor.index');
+
     Route::post('/web-chat', function (Request $request) {
         $userMessage = $request->input('message');
         try {
+            // Forwarding the request to the Python Flask server
             $response = Http::timeout(60)->post('http://127.0.0.1:5000/chat', [
                 'message' => $userMessage
             ]);
@@ -258,6 +288,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('web.chat');
 });
 
+
 /*
 |--------------------------------------------------------------------------
 | Admin Panel Routes (Protected by Auth & Admin Middleware)
@@ -265,45 +296,48 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
-    Route::delete('/quizzes/{quiz}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
-    Route::get('/quizzes/create', [QuizController::class, 'create'])->name('quizzes.create');
-    Route::post('/quizzes/store', [QuizController::class, 'store'])->name('quizzes.store');
+    // Admin Quiz Management
+    Route::get('/quizzes', [AdminQuizController::class, 'index'])->name('quizzes.index');
+    Route::delete('/quizzes/{quiz}', [AdminQuizController::class, 'destroy'])->name('quizzes.destroy');
+    Route::get('/quizzes/create', [AdminQuizController::class, 'create'])->name('quizzes.create');
+    Route::post('/quizzes/store', [AdminQuizController::class, 'store'])->name('quizzes.store');
 
+    // Admin Seerah Uploads
     Route::get('/seerah', [SeerahController::class, 'index'])->name('seerah.index');
     Route::get('/seerah/upload', [SeerahController::class, 'create'])->name('seerah.create');
     Route::post('/seerah/upload', [SeerahController::class, 'store'])->name('seerah.store');
 
-    // Course management
-    Route::get('/courses', [\App\Http\Controllers\Admin\CourseController::class, 'index'])->name('courses.index');
-    Route::get('/courses/create', [\App\Http\Controllers\Admin\CourseController::class, 'create'])->name('courses.create');
-    Route::post('/courses', [\App\Http\Controllers\Admin\CourseController::class, 'store'])->name('courses.store');
-    Route::get('/courses/{course}/edit', [\App\Http\Controllers\Admin\CourseController::class, 'edit'])->name('courses.edit');
-    Route::put('/courses/{course}', [\App\Http\Controllers\Admin\CourseController::class, 'update'])->name('courses.update');
-    Route::delete('/courses/{course}', [\App\Http\Controllers\Admin\CourseController::class, 'destroy'])->name('courses.destroy');
+    // Admin Course Management
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+    Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
+    Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+    Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+    Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
+    Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
 
-    // Module management
-    Route::get('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'index'])->name('modules.index');
-    Route::get('/modules/create', [\App\Http\Controllers\Admin\ModuleController::class, 'create'])->name('modules.create');
-    Route::post('/modules', [\App\Http\Controllers\Admin\ModuleController::class, 'store'])->name('modules.store');
-    Route::get('/modules/{module}/edit', [\App\Http\Controllers\Admin\ModuleController::class, 'edit'])->name('modules.edit');
-    Route::put('/modules/{module}', [\App\Http\Controllers\Admin\ModuleController::class, 'update'])->name('modules.update');
-    Route::delete('/modules/{module}', [\App\Http\Controllers\Admin\ModuleController::class, 'destroy'])->name('modules.destroy');
+    // Admin Module Management
+    Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
+    Route::get('/modules/create', [ModuleController::class, 'create'])->name('modules.create');
+    Route::post('/modules', [ModuleController::class, 'store'])->name('modules.store');
+    Route::get('/modules/{module}/edit', [ModuleController::class, 'edit'])->name('modules.edit');
+    Route::put('/modules/{module}', [ModuleController::class, 'update'])->name('modules.update');
+    Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.destroy');
 
-    // Lesson management
-    Route::get('/lessons', [\App\Http\Controllers\Admin\LessonController::class, 'index'])->name('lessons.index');
-    Route::get('/lessons/create', [\App\Http\Controllers\Admin\LessonController::class, 'create'])->name('lessons.create');
-    Route::post('/lessons', [\App\Http\Controllers\Admin\LessonController::class, 'store'])->name('lessons.store');
-    Route::get('/lessons/{lesson}/edit', [\App\Http\Controllers\Admin\LessonController::class, 'edit'])->name('lessons.edit');
-    Route::put('/lessons/{lesson}', [\App\Http\Controllers\Admin\LessonController::class, 'update'])->name('lessons.update');
-    Route::delete('/lessons/{lesson}', [\App\Http\Controllers\Admin\LessonController::class, 'destroy'])->name('lessons.destroy');
+    // Admin Lesson Management
+    Route::get('/lessons', [AdminLessonController::class, 'index'])->name('lessons.index');
+    Route::get('/lessons/create', [AdminLessonController::class, 'create'])->name('lessons.create');
+    Route::post('/lessons', [AdminLessonController::class, 'store'])->name('lessons.store');
+    Route::get('/lessons/{lesson}/edit', [AdminLessonController::class, 'edit'])->name('lessons.edit');
+    Route::put('/lessons/{lesson}', [AdminLessonController::class, 'update'])->name('lessons.update');
+    Route::delete('/lessons/{lesson}', [AdminLessonController::class, 'destroy'])->name('lessons.destroy');
 });
 
+// Database Connection Checker
 Route::get('/check-db', function () {
     try {
-        $dbName = \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
-        return "লারাভেল বর্তমানে এই ডাটাবেজে কানেক্ট আছে: " . $dbName;
+        $dbName = DB::connection()->getDatabaseName();
+        return "Laravel is currently connected to the database: " . $dbName;
     } catch (\Exception $e) {
-        return "কানেকশন এরর: " . $e->getMessage();
+        return "Connection Error: " . $e->getMessage();
     }
 });

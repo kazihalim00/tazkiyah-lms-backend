@@ -6,7 +6,6 @@
 @section('content')
     <div class="max-w-4xl mx-auto">
 
-        <!-- Top Navigation -->
         <div class="flex items-center justify-between mb-6">
             <a href="{{ url()->previous() }}"
                 class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition font-medium">
@@ -21,40 +20,30 @@
             </span>
         </div>
 
-        <!-- Lesson Content Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
 
-            <!-- Video Player Placeholder -->
-            @if(isset($lesson->video_url) && $lesson->video_url)
-                <div class="aspect-video bg-gray-900 flex items-center justify-center relative">
-                    <div class="text-center text-gray-400">
-                        <svg class="w-16 h-16 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
-                        </svg>
-                        <p class="font-medium">Video Player ({{ $lesson->video_url }})</p>
-                    </div>
+            <div
+                class="min-h-[8rem] py-8 bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center px-6 md:px-8 relative overflow-hidden rounded-t-2xl">
+                <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
                 </div>
-            @else
-                <div
-                    class="min-h-[8rem] py-8 bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center px-6 md:px-8 relative overflow-hidden rounded-t-2xl">
-                    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-                    </div>
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white z-10 leading-snug w-full">
-                        {{ $lesson->title }}
-                    </h1>
-                </div>
-            @endif
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white z-10 leading-snug w-full">
+                    {{ $lesson->title }}
+                </h1>
+            </div>
 
             <div class="p-6 md:p-8">
-                <!-- Lesson Text -->
+                @if(isset($lesson->video_url) && $lesson->video_url)
+                    <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden shadow-inner mb-8 border border-gray-200">
+                        <iframe src="{{ str_replace('/view?usp=drive_link', '/preview', $lesson->video_url) }}" width="100%"
+                            height="100%" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                @endif
                 <div class="prose max-w-none text-gray-600 leading-relaxed mb-8">
                     {!! nl2br(e($lesson->content ?: 'No detailed content has been provided.')) !!}
                 </div>
 
-                <!-- ================= DYNAMIC QUIZ SECTION ================= -->
                 @if($lesson->quiz && $lesson->quiz->questions->count() > 0)
                     <div class="mt-12 border-t border-gray-100 pt-10">
                         <div class="flex items-center gap-3 mb-8">
@@ -67,7 +56,8 @@
                             </div>
                             <div>
                                 <h3 class="text-xl md:text-2xl font-black text-gray-800 tracking-tight">
-                                    {{ $lesson->quiz->title }}</h3>
+                                    {{ $lesson->quiz->title }}
+                                </h3>
                                 <p class="text-xs md:text-sm text-gray-500 font-medium">Test your understanding of this lesson.
                                 </p>
                             </div>
@@ -79,7 +69,8 @@
                                 <div
                                     class="bg-gray-50 p-5 md:p-6 rounded-2xl border border-gray-100 mb-6 transition hover:border-indigo-100">
                                     <p class="font-bold text-gray-800 mb-4 text-base md:text-lg">{{ $index + 1 }}.
-                                        {{ $question->question_text }}</p>
+                                        {{ $question->question_text }}
+                                    </p>
                                     <div class="grid sm:grid-cols-2 gap-3">
                                         @foreach($question->options as $option)
                                             <label
@@ -101,11 +92,9 @@
                         </form>
                     </div>
                 @endif
-                <!-- ================= END QUIZ SECTION ================= -->
             </div>
         </div>
 
-        <!-- Completion Action -->
         <div
             class="bg-gray-50 border border-gray-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
