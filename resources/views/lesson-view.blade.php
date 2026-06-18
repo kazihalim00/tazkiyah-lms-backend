@@ -54,7 +54,28 @@
 
                 <!-- Lesson Text / Content -->
                 <div class="prose max-w-none text-gray-600 leading-relaxed">
-                    {!! nl2br(e($lesson->content ?? 'No detailed content has been provided for this lesson yet.')) !!}
+                    @php
+                        $content = $lesson->content ?? '';
+                        $isUrl = filter_var(trim($content), FILTER_VALIDATE_URL);
+                    @endphp
+
+                    @if($isUrl)
+                        <div class="py-6">
+                            <a href="{{ trim($content) }}" target="_blank"
+                                class="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Watch Video / Open Resource
+                            </a>
+                        </div>
+                    @else
+                        {!! nl2br(e($content ?: 'No detailed content has been provided for this lesson yet.')) !!}
+                    @endif
                 </div>
             </div>
         </div>
