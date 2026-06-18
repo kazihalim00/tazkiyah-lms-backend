@@ -3,10 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema; 
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Request;
-use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest; // এই ইমপোর্টটি ঠিক আছে
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,15 +11,13 @@ class AppServiceProvider extends ServiceProvider
     {
     }
 
-
-
     public function boot(): void
     {
-
         if ($this->app->environment('production')) {
-            Request::setTrustedProxies(
+            // এখানে Request এর বদলে SymfonyRequest ব্যবহার করুন
+            SymfonyRequest::setTrustedProxies(
                 ['0.0.0.0/0'],
-                Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO | Request::HEADER_X_FORWARDED_AWS_ELB
+                SymfonyRequest::HEADER_X_FORWARDED_FOR | SymfonyRequest::HEADER_X_FORWARDED_PROTO | SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB
             );
         }
     }
