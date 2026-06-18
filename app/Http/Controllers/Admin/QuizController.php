@@ -51,4 +51,27 @@ class QuizController extends Controller
 
         return redirect()->back()->with('success', 'Quiz created successfully!');
     }
+    // কুইজ এডিট পেজ দেখানোর জন্য
+    public function edit($id)
+    {
+        $quiz = \App\Models\Quiz::findOrFail($id);
+        return view('admin.quizzes.edit', compact('quiz'));
+    }
+
+    // কুইজ আপডেট করার জন্য
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+
+        $quiz = \App\Models\Quiz::findOrFail($id);
+        $quiz->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->route('admin.quizzes.index')->with('success', 'Quiz details updated successfully!');
+    }
 }

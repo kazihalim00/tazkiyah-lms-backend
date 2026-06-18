@@ -28,12 +28,22 @@
                         <tr class="border-b hover:bg-gray-50">
                             <td class="p-4 font-medium">{{ $quiz->title }}</td>
                             <td class="p-4">{{ $quiz->questions->count() }}</td>
-                            <td class="p-4 text-right flex justify-end gap-2">
+                            <td class="py-4 px-6 text-sm font-medium text-right flex items-center justify-end gap-3">
+                                <a href="{{ route('admin.quizzes.edit', $quiz->id) }}"
+                                    class="text-indigo-600 hover:text-indigo-900 font-bold bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition">
+                                    Edit
+                                </a>
+
                                 <form action="{{ route('admin.quizzes.destroy', $quiz->id) }}" method="POST"
-                                    onsubmit="return confirm('Are you sure?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 font-bold hover:underline">Delete</button>
+                                    onsubmit="return confirm('Are you sure you want to delete this quiz?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="text-red-600 hover:text-red-900 font-bold bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition">
+                                        Delete
+                                    </button>
                                 </form>
+
                             </td>
                         </tr>
                     @empty
