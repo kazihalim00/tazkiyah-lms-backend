@@ -11,6 +11,9 @@
         @foreach($leaderboard->take(3) as $index => $rankUser)
             @php 
                 $isSelf = $rankUser->id == auth()->id();
+                // পজিশন নির্ধারণ: প্রথম জন 1, দ্বিতীয় জন 2, তৃতীয় জন 3
+                $rankPosition = $index + 1;
+                
                 $podiumClasses = [
                     0 => 'from-amber-50/40 to-white border-amber-200 order-1 md:order-2 transform md:scale-105',
                     1 => 'border-gray-100 order-2 md:order-1',
@@ -18,9 +21,16 @@
                 ][$index];
             @endphp
             <div class="bg-white p-6 rounded-3xl border shadow-sm flex flex-col items-center text-center relative transition {{ $podiumClasses }} {{ $isSelf ? 'ring-4 ring-indigo-500' : '' }}">
-                @if($index == 0)
+                
+                <div class="absolute -top-4 left-4 h-8 w-8 rounded-full flex items-center justify-center font-black text-white shadow-md z-10
+                    {{ $rankPosition == 1 ? 'bg-amber-400' : ($rankPosition == 2 ? 'bg-gray-400' : 'bg-orange-400') }}">
+                    #{{ $rankPosition }}
+                </div>
+
+                @if($rankPosition == 1)
                     <div class="absolute -top-7 left-1/2 transform -translate-x-1/2 bg-amber-400 text-white text-xs font-black px-4 py-1.5 rounded-full shadow flex items-center gap-1.5 ring-4 ring-white animate-bounce">👑 CHAMPION</div>
                 @endif
+                
                 <div class="relative mb-4 mt-2">
                     @if($rankUser->image)
                         <img src="{{ asset('storage/' . $rankUser->image) }}" 
@@ -57,11 +67,18 @@
     @if($leaderboard->count() > 3)
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="divide-y divide-gray-100">
-            @foreach($leaderboard->slice(3) as $index => $boardUser)
-                @php $isCurrentUser = $boardUser->id == auth()->id(); @endphp
+            @foreach($leaderboard->slice(3) as $boardUser)
+                @php 
+                    $isCurrentUser = $boardUser->id == auth()->id(); 
+                    $currentRank = $loop->iteration + 3; // 4, 5, 6... এভাবে বাড়বে
+                @endphp
                 <div class="flex flex-col md:flex-row md:items-center justify-between p-5 md:px-8 transition-all {{ $isCurrentUser ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white hover:bg-indigo-50/30' }}">
                     <div class="flex items-center gap-6 w-full md:w-1/2">
-                        <div class="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500">{{ $index + 4 }}</div>
+                        
+                        <div class="h-8 w-8 rounded-full flex items-center justify-center text-sm font-black {{ $isCurrentUser ? 'bg-white text-indigo-600' : 'bg-gray-100 text-gray-500' }}">
+                            {{ $currentRank }}
+                        </div>
+                        
                         @if($boardUser->image)
                             <img src="{{ asset('storage/' . $boardUser->image) }}" 
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($boardUser->name) }}&background=6366f1&color=fff&size=100';"
