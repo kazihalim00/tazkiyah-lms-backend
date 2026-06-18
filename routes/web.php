@@ -78,9 +78,12 @@ Route::post('/register', function (Request $request) {
     ]);
 
     $imagePath = null;
+    // web.php এর প্রোফাইল আপডেটের লজিকের ভেতরে:
     if ($request->hasFile('image')) {
-        // Replaced local storage with Cloudinary
         $imagePath = app(\App\Services\CloudinaryService::class)->uploadImage($request->file('image'));
+
+        // Assign uploaded image path to variable; will be set on user creation below
+        // (Do not assign to $user before it is created)
     }
 
     $user = User::create([
