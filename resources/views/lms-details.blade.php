@@ -6,7 +6,6 @@
 @section('content')
 <div class="max-w-5xl mx-auto">
     
-    <!-- Back Button -->
     <a href="{{ route('courses.catalog') }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition mb-6 font-medium">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -16,9 +15,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Left Side: Course Info -->
         <div class="lg:col-span-1 space-y-6">
-            <!-- Course Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="h-40 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 flex items-center justify-center relative">
                     <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
@@ -50,8 +47,8 @@
             </div>
         </div>
 
-        <!-- Right Side: Modules & Lessons -->
         <div class="lg:col-span-2">
+            
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-6">Course Curriculum</h2>
 
@@ -59,7 +56,6 @@
                     <div class="space-y-6">
                         @foreach($course->modules as $index => $module)
                             <div class="border border-gray-100 rounded-xl overflow-hidden">
-                                <!-- Module Header -->
                                 <div class="bg-gray-50 px-5 py-4 border-b border-gray-100 flex justify-between items-center">
                                     <h3 class="font-bold text-gray-800">Module {{ $index + 1 }}: {{ $module->title }}</h3>
                                     <span class="text-xs font-medium text-gray-500 bg-white px-2.5 py-1 rounded-md border border-gray-200">
@@ -67,7 +63,6 @@
                                     </span>
                                 </div>
                                 
-                                <!-- Lessons List -->
                                 <div class="divide-y divide-gray-100 bg-white">
                                     @forelse($module->lessons as $lesson)
                                         @php
@@ -75,7 +70,6 @@
                                         @endphp
                                         <div class="px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition group">
                                             <div class="flex items-center gap-3">
-                                                <!-- Status Icon -->
                                                 @if($isCompleted)
                                                     <div class="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
                                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
@@ -105,9 +99,35 @@
                         <p class="text-gray-500">Curriculum is currently being updated. Check back soon!</p>
                     </div>
                 @endif
-                
             </div>
-        </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mt-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    Assessments & Quizzes
+                </h3>
+
+                <div class="space-y-4">
+                    @if(isset($quizzes) && $quizzes->count() > 0)
+                        @foreach($quizzes as $quiz)
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-xl border border-gray-100 bg-gray-50 hover:border-indigo-200 transition gap-4 group">
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-lg group-hover:text-indigo-700 transition">{{ $quiz->title }}</h4>
+                                <p class="text-sm text-gray-500 mt-1">{{ Str::limit($quiz->description, 80) }}</p>
+                            </div>
+                            <a href="{{ route('quizzes.show', $quiz->id) }}" class="shrink-0 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-md transition text-center">
+                                Take Quiz
+                            </a>
+                        </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50">
+                            <p class="text-gray-500 text-sm font-medium">No quizzes available for this course yet.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            </div>
         
     </div>
 </div>
