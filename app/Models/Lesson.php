@@ -22,4 +22,8 @@ class Lesson extends Model
     {
         return $this->belongsToMany(User::class, 'lesson_completions');
     }
+    public function quiz()
+    {
+        return $this->hasOne(Quiz::class);
+    }
 }

@@ -15,8 +15,9 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ChatController;
 use App\Models\Course;
 use App\Models\LessonCompletion;
-use Illuminate\Support\Facades\Artisan; // <-- Artisan অ্যাড করা হয়েছে
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\Admin\SeerahController;
+use App\Http\Controllers\Admin\QuizController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,8 +41,6 @@ Route::post('/login', function (Request $request) {
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-
-        // এখানে ভিউ না দিয়ে রিডাইরেক্ট দাও:
         return redirect()->intended('/my-dashboard');
     }
 
@@ -207,12 +206,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracker', [IbadahTrackerController::class, 'store']);
 
     // Learning Management System (LMS) User Routes
-/*
-|--------------------------------------------------------------------------
-| Course Catalog Routes
-|--------------------------------------------------------------------------
-*/
-
     Route::get('/courses', function () {
         $courses = \App\Models\Course::latest()->get();
         return view('lms.index', compact('courses'));
@@ -238,11 +231,14 @@ Route::middleware(['auth'])->group(function () {
         return back()->with('success', 'Lesson completed successfully!');
     })->name('lesson.complete');
 
+    // Quiz Routes
+    Route::get('/quiz/{id}', [App\Http\Controllers\QuizController::class, 'show'])->name('quizzes.show');
+    Route::post('/quiz/{id}/submit', [App\Http\Controllers\QuizController::class, 'submit'])->name('quizzes.submit');
+
     // Noor AI Chatbot Core Integration
     Route::get('/noor-ai', function () {
         return view('noor-ai');
     })->name('noor.index');
-
     Route::post('/web-chat', function (Request $request) {
         $userMessage = $request->input('message');
         try {
@@ -269,9 +265,15 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('/seerah', [SeerahController::class, 'index'])->name('admin.seerah.index');
-    Route::get('/seerah/upload', [SeerahController::class, 'create'])->name('admin.seerah.create');
-    Route::post('/seerah/upload', [SeerahController::class, 'store'])->name('admin.seerah.store');
+    Route::get('/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::delete('/quizzes/{quiz}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
+    Route::get('/quizzes/create', [QuizController::class, 'create'])->name('quizzes.create');
+    Route::post('/quizzes/store', [QuizController::class, 'store'])->name('quizzes.store');
+
+    Route::get('/seerah', [SeerahController::class, 'index'])->name('seerah.index');
+    Route::get('/seerah/upload', [SeerahController::class, 'create'])->name('seerah.create');
+    Route::post('/seerah/upload', [SeerahController::class, 'store'])->name('seerah.store');
+
     // Course management
     Route::get('/courses', [\App\Http\Controllers\Admin\CourseController::class, 'index'])->name('courses.index');
     Route::get('/courses/create', [\App\Http\Controllers\Admin\CourseController::class, 'create'])->name('courses.create');

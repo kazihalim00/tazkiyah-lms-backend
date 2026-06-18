@@ -63,4 +63,9 @@ class LessonController extends Controller
 
         return redirect()->route('admin.lessons.index')->with('success', 'Lesson updated successfully!');
     }
+    public function show($id)
+    {
+        $lesson = Lesson::with('quiz.questions.options')->findOrFail($id);
+        return view('lessons.show', compact('lesson'));
+    }
 }

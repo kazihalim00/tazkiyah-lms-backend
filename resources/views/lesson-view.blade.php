@@ -24,7 +24,7 @@
         <!-- Lesson Content Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
 
-            <!-- Video Player Placeholder (If video URL exists) -->
+            <!-- Video Player Placeholder -->
             @if(isset($lesson->video_url) && $lesson->video_url)
                 <div class="aspect-video bg-gray-900 flex items-center justify-center relative">
                     <div class="text-center text-gray-400">
@@ -38,7 +38,6 @@
                     </div>
                 </div>
             @else
-                <!-- Reading Material Header (Fixed for Mobile) -->
                 <div
                     class="min-h-[8rem] py-8 bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center px-6 md:px-8 relative overflow-hidden rounded-t-2xl">
                     <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
@@ -50,110 +49,59 @@
             @endif
 
             <div class="p-6 md:p-8">
-                @if(isset($lesson->video_url) && $lesson->video_url)
-                    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ $lesson->title }}</h1>
-                @endif
-
-                <!-- Lesson Text / Content -->
+                <!-- Lesson Text -->
                 <div class="prose max-w-none text-gray-600 leading-relaxed mb-8">
-                    @php
-                        $content = $lesson->content ?? '';
-                        $isUrl = filter_var(trim($content), FILTER_VALIDATE_URL);
-                    @endphp
+                    {!! nl2br(e($lesson->content ?: 'No detailed content has been provided.')) !!}
+                </div>
 
-                    @if($isUrl)
-                        <div class="py-4">
-                            <a href="{{ trim($content) }}" target="_blank"
-                                class="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm w-full sm:w-auto justify-center">
+                <!-- ================= DYNAMIC QUIZ SECTION ================= -->
+                @if($lesson->quiz && $lesson->quiz->questions->count() > 0)
+                    <div class="mt-12 border-t border-gray-100 pt-10">
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="bg-indigo-100 text-indigo-600 p-2.5 rounded-xl shadow-inner">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                                     </path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                Watch Video / Open Resource
-                            </a>
-                        </div>
-                    @else
-                        {!! nl2br(e($content ?: 'No detailed content has been provided for this lesson yet.')) !!}
-                    @endif
-                </div>
-
-                <!-- ================= QUIZ SECTION ================= -->
-                <div class="mt-12 border-t border-gray-100 pt-10">
-                    <div class="flex items-center gap-3 mb-8">
-                        <div class="bg-indigo-100 text-indigo-600 p-2.5 rounded-xl shadow-inner">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                                </path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl md:text-2xl font-black text-gray-800 tracking-tight">Knowledge Check</h3>
-                            <p class="text-xs md:text-sm text-gray-500 font-medium">Test your understanding of this lesson.
-                            </p>
-                        </div>
-                    </div>
-
-                    <form action="#" method="POST" class="space-y-6">
-                        @csrf
-
-                        <!-- 10 Questions Loop -->
-                        @for ($i = 1; $i <= 10; $i++)
-                            <div
-                                class="bg-gray-50 p-5 md:p-6 rounded-2xl border border-gray-100 transition hover:shadow-md hover:border-indigo-100">
-                                <p class="font-bold text-gray-800 mb-4 text-base md:text-lg">{{ $i }}. এই লেসনের গুরুত্বপূর্ণ
-                                    প্রশ্ন {{ $i }} এখানে থাকবে?</p>
-                                <div class="grid sm:grid-cols-2 gap-3">
-                                    <label
-                                        class="flex items-center p-3.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition group">
-                                        <input type="radio" name="q{{ $i }}" value="A"
-                                            class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-indigo-800">ক)
-                                            প্রথম অপশন</span>
-                                    </label>
-                                    <label
-                                        class="flex items-center p-3.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition group">
-                                        <input type="radio" name="q{{ $i }}" value="B"
-                                            class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-indigo-800">খ)
-                                            দ্বিতীয় অপশন</span>
-                                    </label>
-                                    <label
-                                        class="flex items-center p-3.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition group">
-                                        <input type="radio" name="q{{ $i }}" value="C"
-                                            class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-indigo-800">গ)
-                                            তৃতীয় অপশন</span>
-                                    </label>
-                                    <label
-                                        class="flex items-center p-3.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition group">
-                                        <input type="radio" name="q{{ $i }}" value="D"
-                                            class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                                        <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-indigo-800">ঘ)
-                                            চতুর্থ অপশন</span>
-                                    </label>
-                                </div>
                             </div>
-                        @endfor
-
-                        <div class="pt-4 pb-2">
-                            <button type="button"
-                                onclick="alert('আলহামদুলিল্লাহ! ডিজাইন রেডি। ডাটাবেজে কুইজ টেবিল বানালেই এটি পুরোপুরি কাজ করবে!')"
-                                class="w-full sm:w-auto px-8 py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                                Submit Quiz Results
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                </svg>
-                            </button>
+                            <div>
+                                <h3 class="text-xl md:text-2xl font-black text-gray-800 tracking-tight">
+                                    {{ $lesson->quiz->title }}</h3>
+                                <p class="text-xs md:text-sm text-gray-500 font-medium">Test your understanding of this lesson.
+                                </p>
+                            </div>
                         </div>
-                    </form>
-                </div>
-                <!-- ================= END QUIZ SECTION ================= -->
 
+                        <form action="{{ route('quizzes.submit', $lesson->quiz->id) }}" method="POST">
+                            @csrf
+                            @foreach($lesson->quiz->questions as $index => $question)
+                                <div
+                                    class="bg-gray-50 p-5 md:p-6 rounded-2xl border border-gray-100 mb-6 transition hover:border-indigo-100">
+                                    <p class="font-bold text-gray-800 mb-4 text-base md:text-lg">{{ $index + 1 }}.
+                                        {{ $question->question_text }}</p>
+                                    <div class="grid sm:grid-cols-2 gap-3">
+                                        @foreach($question->options as $option)
+                                            <label
+                                                class="flex items-center p-3.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition group">
+                                                <input type="radio" name="answers[{{ $question->id }}]" value="{{ $option->id }}"
+                                                    required class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                                <span
+                                                    class="ml-3 text-sm font-medium text-gray-700 group-hover:text-indigo-800">{{ $option->option_text }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <button type="submit"
+                                class="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all">
+                                Submit Quiz Results
+                            </button>
+                        </form>
+                    </div>
+                @endif
+                <!-- ================= END QUIZ SECTION ================= -->
             </div>
         </div>
 
@@ -164,30 +112,18 @@
                 <h4 class="text-lg font-bold text-gray-800">Finished this lesson?</h4>
                 <p class="text-gray-500 text-sm">Marking this as complete will update your course progress.</p>
             </div>
-
-            @php
-                $isCompleted = \App\Models\LessonCompletion::where('user_id', auth()->id())
-                    ->where('lesson_id', $lesson->id)
-                    ->exists();
-            @endphp
-
-            @if($isCompleted)
+            @if(\App\Models\LessonCompletion::where('user_id', auth()->id())->where('lesson_id', $lesson->id)->exists())
                 <div class="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-6 py-3 rounded-xl font-bold">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
                     Completed
                 </div>
             @else
                 <form action="{{ route('lesson.complete', $lesson->id) }}" method="POST">
                     @csrf
                     <button type="submit"
-                        class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-sm w-full sm:w-auto">
-                        Mark as Complete
-                    </button>
+                        class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition">Mark as
+                        Complete</button>
                 </form>
             @endif
         </div>
-
     </div>
 @endsection
