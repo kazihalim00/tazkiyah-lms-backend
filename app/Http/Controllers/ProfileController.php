@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
@@ -21,9 +22,9 @@ class ProfileController extends Controller
         $user = auth()->user();
 
         if ($request->hasFile('image')) {
-    
-            $imagePath = $request->file('image')->store('profiles', 'public');
-            $user->image = $imagePath;
+            // Render-এর লোকাল স্টোরেজের বদলে সরাসরি Cloudinary-তে আপলোড হচ্ছে
+            $imageUrl = cloudinary()->upload($request->file('image')->getRealPath())->getSecurePath();
+            $user->image = $imageUrl;
         }
 
         $user->name = $request->name;
