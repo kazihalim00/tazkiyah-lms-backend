@@ -35,14 +35,14 @@
                 <label class="block text-gray-700 font-medium mb-2">Full Name</label>
                 <input type="text" name="name" required
                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="John Doe">
+                    placeholder="Your name">
             </div>
 
             <div class="mb-4">
                 <label class="block text-gray-700 font-medium mb-2">Email Address</label>
                 <input type="email" name="email" required
                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="you@example.com">
+                    placeholder="Your mail">
             </div>
 
             <div class="mb-4">
