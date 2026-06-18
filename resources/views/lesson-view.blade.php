@@ -33,11 +33,28 @@
 
             <div class="p-6 md:p-8">
                 @if(isset($lesson->video_url) && $lesson->video_url)
-                    <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden shadow-inner mb-8 border border-gray-200">
-                        <iframe src="{{ str_replace('/view?usp=drive_link', '/preview', $lesson->video_url) }}" width="100%"
-                            height="100%" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media"
-                            allowfullscreen>
-                        </iframe>
+                    <div
+                        class="relative bg-slate-900 rounded-2xl overflow-hidden aspect-video flex flex-col items-center justify-center text-center p-8 border border-slate-800 shadow-xl group my-8">
+
+                        <div class="absolute inset-0 bg-gradient-to-tr from-indigo-900/60 to-purple-900/40"></div>
+
+                        <div class="relative z-10 flex flex-col items-center">
+                            <a href="{{ str_replace('/view?usp=drive_link', '/preview', $lesson->video_url) }}" target="_blank"
+                                class="w-20 h-20 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.5)] group-hover:scale-110 transition-all duration-300">
+                                <svg class="w-10 h-10 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            </a>
+
+                            <h3 class="mt-6 text-xl font-bold text-white tracking-wide">Watch Lesson Video</h3>
+                            <p class="text-slate-300 mt-2 text-sm max-w-sm">Click the play button to watch this lesson in a new
+                                tab.</p>
+
+                            <a href="{{ str_replace('/view?usp=drive_link', '/preview', $lesson->video_url) }}" target="_blank"
+                                class="mt-6 inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-xl text-sm font-bold backdrop-blur-sm border border-white/10 transition">
+                                Open in Drive
+                            </a>
+                        </div>
                     </div>
                 @endif
                 <div class="prose max-w-none text-gray-600 leading-relaxed mb-8">

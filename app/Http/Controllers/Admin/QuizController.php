@@ -17,7 +17,11 @@ class QuizController extends Controller
         $quizzes = Quiz::with('questions')->latest()->get();
         return view('admin.quizzes.index', compact('quizzes'));
     }
-
+    public function show($id)
+    {
+        $quiz = Quiz::with('questions.options')->findOrFail($id);
+        return view('student.quizzes.show', compact('quiz'));
+    }
 
     public function destroy(Quiz $quiz)
     {
