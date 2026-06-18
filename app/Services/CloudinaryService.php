@@ -2,17 +2,26 @@
 
 namespace App\Services;
 
+use Cloudinary\Cloudinary;
+use Cloudinary\Configuration\Configuration;
+
 class CloudinaryService
 {
-    /**
-     * Upload an image to Cloudinary and return the secure URL.
-     *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @return string
-     */
+    protected $cloudinary;
+
+    public function __construct()
+    {
+        // তোমার .env ফাইলে থাকা CLOUDINARY_URL ব্যবহার করে কনফিগারেশন করা
+        $this->cloudinary = new Cloudinary(
+            Configuration::instance(env('CLOUDINARY_URL'))
+        );
+    }
+
     public function uploadImage($file)
     {
 
-        return cloudinary()->upload($file->getRealPath())->getSecurePath();
+        $result = $this->cloudinary->uploadApi()->upload($file->getRealPath());
+
+        return $result['secure_url'];
     }
 }

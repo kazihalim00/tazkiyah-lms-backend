@@ -19,7 +19,12 @@ class PostController extends Controller
     {
         $posts = Post::with(['user', 'likes', 'comments'])->latest()->get();
 
-        return view('community.index', compact('posts'));
+
+        if (!view()->exists('feed')) {
+            dd("Error: 'feed.blade.php' file not found in resources/views/");
+        }
+
+        return view('feed', compact('posts'));
     }
 
     public function store(Request $request)
