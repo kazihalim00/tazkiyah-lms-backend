@@ -245,6 +245,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/lms/{id}', function ($id) {
         $course = Course::findOrFail($id);
+        $quizzes = \App\Models\Quiz::latest()->get();
         $completedLessonIds = LessonCompletion::where('user_id', auth()->id())->pluck('lesson_id')->toArray();
         return view('lms-details', compact('course', 'completedLessonIds'));
     })->name('lms.show');
