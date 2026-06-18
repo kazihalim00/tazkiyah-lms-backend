@@ -2,16 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Quiz extends Model
 {
-    // এই কলামগুলোতে একবারে ডাটা অ্যাসাইন করার অনুমতি দেওয়া হলো
-    protected $fillable = [
-        'title',
-        'description'
-    ];
+    use HasFactory;
 
+    protected $fillable = ['title', 'description'];
 
     public function questions()
     {
