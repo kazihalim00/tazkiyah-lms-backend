@@ -39,7 +39,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
                 <p class="text-xs font-bold text-gray-400 uppercase">Total System Courses</p>
-                <p class="text-2xl font-black text-gray-900 mt-1">{{ $course->modules?->count() ?? 0 }}</p>
+                <p class="text-2xl font-black text-gray-900 mt-1">{{ $courses->count() }}</p>
             </div>
             <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
                 <p class="text-xs font-bold text-gray-400 uppercase">Configured Modules</p>
@@ -88,7 +88,7 @@
                                             {{ $course->modules->count() ?? 0 }} Modules
                                         </span>
                                         <span class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md font-bold">
-                                            {{ $course->lessons->count() ?? 0 }} Total Lessons
+                                            {{ $course->lessons?->count() ?? 0 }} Total Lessons
                                         </span>
                                     </div>
                                 </td>
