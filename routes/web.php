@@ -78,7 +78,7 @@ Route::post('/register', function (Request $request) {
     ]);
 
     $imagePath = null;
-    // web.php এর প্রোফাইল আপডেটের লজিকের ভেতরে:
+  
     if ($request->hasFile('image')) {
         $imagePath = app(\App\Services\CloudinaryService::class)->uploadImage($request->file('image'));
 
