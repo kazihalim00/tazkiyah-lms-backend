@@ -29,15 +29,19 @@ class PostController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
-        $path = null;
+        $imageUrl = null;
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('posts', 'public');
+            try {
+                $imageUrl = $this->cloudinary->uploadImage($request->file('image'));
+            } catch (\Exception $e) {
+                return back()->withErrors(['image' => 'Image upload failed: ' . $e->getMessage()]);
+            }
         }
 
         Post::create([
             'user_id' => auth()->id(),
             'content' => $request->input('content'),
-            'image' => $path, 
+            'image' => $imageUrl,
         ]);
 
         return redirect()->back()->with('success', 'Post created successfully!');

@@ -91,4 +91,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image)
+            return null;
+        return str_starts_with($this->image, 'http') ? $this->image : asset('storage/' . $this->image);
+    }
 }

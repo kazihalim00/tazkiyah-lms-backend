@@ -6,18 +6,17 @@
 @section('content')
     <div class="max-w-2xl mx-auto space-y-8">
 
-        <!-- Create Post Box -->
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
             <div class="flex items-start gap-4">
                 @if(auth()->user()->image)
-                    <img src="{{ asset('storage/' . auth()->user()->image) }}" class="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-sm shrink-0" alt="My Profile">
+                    <img src="{{ auth()->user()->image_url }}" class="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-sm shrink-0" alt="My Profile">
                 @else
                     <div class="h-11 w-11 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-black text-sm uppercase shadow-inner shrink-0">
                         {{ substr(auth()->user()->name, 0, 1) }}
                     </div>
                 @endif
 
-    <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="w-full space-y-4">
+                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="w-full space-y-4">
                    @csrf
                     <textarea name="content" rows="3" required
                         class="w-full border-0 focus:ring-0 p-2 text-gray-700 text-base placeholder-gray-400 bg-gray-50 rounded-2xl focus:outline-none"
@@ -40,15 +39,13 @@
             </div>
         </div>
 
-        <!-- Feed Posts List -->
         <div class="space-y-6">
             @forelse($posts as $post)
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
-                        <!-- Post Header -->
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 @if($post->user->image)
-                                    <img src="{{ asset('storage/' . $post->user->image) }}" class="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-sm" alt="Avatar">
+                                    <img src="{{ $post->user->image_url }}" class="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-sm" alt="Avatar">
                                 @else
                                     <div class="h-11 w-11 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-black text-sm uppercase shadow-inner">
                                         {{ substr($post->user->name, 0, 1) }}
@@ -69,16 +66,14 @@
                             </div>
                         </div>
 
-                        <!-- Post Content Text -->
                         <div class="text-gray-800 text-base leading-relaxed whitespace-pre-line px-1">
                             {{ $post->content }}
                         </div>
 
-                        <!-- Post Image -->
-                @if($post->image)
-                    <img src="{{ asset('storage/' . $post->image) }}" alt="Post media">
-                @endif
-                        <!-- Interaction Counter Stats Bar -->
+                        @if($post->image)
+                            <img src="{{ $post->image_url }}" class="w-full rounded-2xl mt-2" alt="Post media">
+                        @endif
+                        
                         <div class="flex items-center justify-between text-xs font-bold text-gray-400 px-1 pt-2 border-b border-gray-50 pb-2">
                             <div class="flex items-center gap-1">
                                 🤝 <span class="text-gray-600">{{ $post->likes->count() }}</span> Supports
@@ -88,7 +83,6 @@
                             </div>
                         </div>
 
-                        <!-- Like and Comment Interactive Buttons -->
                         <div class="flex items-center gap-4 pt-1">
                             @php $hasLiked = $post->isLikedBy(auth()->id()); @endphp
                             <form action="{{ route('posts.like', $post->id) }}" method="POST" class="w-1/2">
@@ -110,19 +104,16 @@
                             </div>
                         </div>
 
-                        <!-- Comments Display Box -->
                         <div class="space-y-4 bg-gray-50/70 p-4 rounded-2xl mt-2">
 
-                            <!-- List of top-level comments and nested replies -->
                             @if($post->comments->whereNull('parent_id')->count() > 0)
                                 <div class="space-y-4 max-h-80 overflow-y-auto pr-1">
                                     @foreach($post->comments->whereNull('parent_id') as $comment)
                                         <div class="space-y-2">
 
-                                            <!-- Parent Comment Bubble -->
                                             <div class="flex items-start gap-2.5">
                                                 @if($comment->user->image)
-                                                    <img src="{{ asset('storage/' . $comment->user->image) }}" class="h-7 w-7 rounded-full object-cover shadow-sm mt-0.5" alt="Commenter">
+                                                    <img src="{{ $comment->user->image_url }}" class="h-7 w-7 rounded-full object-cover shadow-sm mt-0.5" alt="Commenter">
                                                 @else
                                                     <div class="h-7 w-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-black text-[10px] uppercase mt-0.5">
                                                         {{ substr($comment->user->name, 0, 1) }}
@@ -132,7 +123,6 @@
                                                     <span class="block font-black text-xs text-gray-900 mb-0.5">{{ $comment->user->name }}</span>
                                                     <p class="text-gray-700 font-medium leading-relaxed">{{ $comment->content }}</p>
 
-                                                    <!-- Comment Actions (Like & Reply Triggers) -->
                                                     <div class="flex items-center gap-3 mt-2 text-[10px] font-bold text-gray-400">
                                                         <form action="{{ route('comments.like', $comment->id) }}" method="POST" class="inline">
                                                             @csrf
@@ -148,13 +138,12 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Nested Comment Replies (Child Comments) -->
                                             @if($comment->replies->count() > 0)
                                                 <div class="pl-10 space-y-2 border-l-2 border-gray-200 ml-3.5">
                                                     @foreach($comment->replies as $reply)
                                                         <div class="flex items-start gap-2">
                                                             @if($reply->user->image)
-                                                                <img src="{{ asset('storage/' . $reply->user->image) }}" class="h-6 w-6 rounded-full object-cover shadow-sm mt-0.5" alt="Replier">
+                                                                <img src="{{ $reply->user->image_url }}" class="h-6 w-6 rounded-full object-cover shadow-sm mt-0.5" alt="Replier">
                                                             @else
                                                                 <div class="h-6 w-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-black text-[9px] uppercase mt-0.5">
                                                                     {{ substr($reply->user->name, 0, 1) }}
@@ -169,7 +158,6 @@
                                                 </div>
                                             @endif
 
-                                            <!-- Inline Reply Input Field (Hidden by default) -->
                                             <form id="reply-form-{{ $comment->id }}" action="{{ route('comments.reply', $comment->id) }}" method="POST" class="hidden pl-10 flex gap-2 pt-1">
                                                 @csrf
                                                 <input type="text" name="content" required placeholder="Write a reply..." 
@@ -184,7 +172,6 @@
                                 </div>
                             @endif
 
-                            <!-- Main Top-Level Comment Input Field -->
                             <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex gap-2 pt-2 border-t border-gray-100">
                                 @csrf
                                 <input type="text" name="content" id="main-comment-input-{{ $post->id }}" required placeholder="Write a respectful comment..." 

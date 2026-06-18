@@ -37,4 +37,10 @@ class Post extends Model
     {
         return $this->likes()->where('user_id', $userId)->exists();
     }
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image)
+            return null;
+        return str_starts_with($this->image, 'http') ? $this->image : asset('storage/' . $this->image);
+    }
 }

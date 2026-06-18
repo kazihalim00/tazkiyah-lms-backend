@@ -84,6 +84,14 @@ class AccountabilityPartnerController extends Controller
      */
     public function sendRequest(Request $request, $partnerId)
     {
+        $sender = Auth::user();
+        $receiver = User::findOrFail($partnerId);
+
+        // Strict Security Check: ক্রস-জেন্ডার রিকোয়েস্ট ব্লক করা
+        if ($sender->gender !== $receiver->gender) {
+            return back()->with('error', 'Cross-gender connection requests are strictly prohibited.');
+        }
+
         $exists = AccountabilityPartner::where(function ($query) use ($partnerId) {
             $query->where('user_id', Auth::id())->where('partner_id', $partnerId);
         })->orWhere(function ($query) use ($partnerId) {

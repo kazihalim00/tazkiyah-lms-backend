@@ -181,8 +181,8 @@
                     </div>
 
                     @if(auth()->user()->image)
-                        <img src="{{ asset('storage/' . auth()->user()->image) }}"
-                            class="h-10 w-10 rounded-full object-cover" alt="Profile Photo">
+                        <img src="{{ auth()->user()->image_url }}" class="h-10 w-10 rounded-full object-cover"
+                            alt="Profile Photo">
                     @else
                         <div
                             class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black">

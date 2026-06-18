@@ -122,27 +122,7 @@ Route::middleware(['auth'])->group(function () {
         return view('profile');
     })->name('profile');
 
-    Route::post('/profile/update', function (Request $request) {
-        $user = Auth::user();
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120'
-        ]);
-
-        $user->name = $request->name;
-        $user->email = $request->email;
-
-        if ($request->hasFile('image')) {
-            // Cloudinary বাদ দিয়ে লোকাল স্টোরেজ ব্যবহার করছি
-            $path = $request->file('image')->store('profiles', 'public');
-            $user->image = $path;
-        }
-
-        $user->save();
-        return back()->with('success', 'Profile updated successfully!');
-    })->name('profile.update');
+    Route::post('/profile/update', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
     Route::get('/my-dashboard', function () {
         $user = Auth::user();

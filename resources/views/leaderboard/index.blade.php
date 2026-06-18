@@ -11,7 +11,6 @@
         @foreach($leaderboard->take(3) as $index => $rankUser)
             @php 
                 $isSelf = $rankUser->id == auth()->id();
-                // পজিশন নির্ধারণ: প্রথম জন 1, দ্বিতীয় জন 2, তৃতীয় জন 3
                 $rankPosition = $index + 1;
                 
                 $podiumClasses = [
@@ -33,7 +32,7 @@
                 
                 <div class="relative mb-4 mt-2">
                     @if($rankUser->image)
-                        <img src="{{ asset('storage/' . $rankUser->image) }}" 
+                        <img src="{{ $rankUser->image_url ?? asset('storage/' . $rankUser->image) }}" 
                              onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($rankUser->name) }}&background=6366f1&color=fff&size=100';"
                              class="h-20 w-20 rounded-full object-cover border-4 border-indigo-50" alt="Avatar">
                     @else
@@ -49,6 +48,8 @@
                 <div class="w-full mt-4">
                     @if($isSelf)
                         <span class="text-xs text-gray-400 font-bold">That's You!</span>
+                    @elseif(auth()->user()->gender !== $rankUser->gender)
+                        <span class="text-xs text-red-500 font-bold bg-red-50 px-3 py-1.5 rounded-xl block cursor-not-allowed" title="Cross-gender connection is not allowed">🚫 Restricted</span>
                     @elseif(in_array($rankUser->id, $connectedUserIds))
                         <span class="text-xs text-emerald-600 font-black bg-emerald-50 px-3 py-1.5 rounded-xl block">✓ Active Partner</span>
                     @elseif(in_array($rankUser->id, $pendingSentIds))
@@ -70,7 +71,7 @@
             @foreach($leaderboard->slice(3) as $boardUser)
                 @php 
                     $isCurrentUser = $boardUser->id == auth()->id(); 
-                    $currentRank = $loop->iteration + 3; // 4, 5, 6... এভাবে বাড়বে
+                    $currentRank = $loop->iteration + 3; 
                 @endphp
                 <div class="flex flex-col md:flex-row md:items-center justify-between p-5 md:px-8 transition-all {{ $isCurrentUser ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white hover:bg-indigo-50/30' }}">
                     <div class="flex items-center gap-6 w-full md:w-1/2">
@@ -80,7 +81,7 @@
                         </div>
                         
                         @if($boardUser->image)
-                            <img src="{{ asset('storage/' . $boardUser->image) }}" 
+                            <img src="{{ $boardUser->image_url ?? asset('storage/' . $boardUser->image) }}" 
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($boardUser->name) }}&background=6366f1&color=fff&size=100';"
                                  class="h-10 w-10 rounded-full object-cover border" alt="Avatar">
                         @else
@@ -92,7 +93,9 @@
                     <div class="md:w-1/4 flex items-center justify-end gap-6">
                         <span class="font-black text-lg">{{ $boardUser->total_points }} pts</span>
                         @if(!$isCurrentUser)
-                            @if(in_array($boardUser->id, $connectedUserIds))
+                            @if(auth()->user()->gender !== $boardUser->gender)
+                                <span class="text-[10px] text-red-500 font-bold bg-red-50 px-3 py-1.5 rounded-xl cursor-not-allowed">🚫 Restricted</span>
+                            @elseif(in_array($boardUser->id, $connectedUserIds))
                                 <span class="text-xs text-emerald-500 font-bold">Partner</span>
                             @elseif(in_array($boardUser->id, $pendingSentIds))
                                 <span class="text-xs text-amber-500 font-bold">Pending</span>
