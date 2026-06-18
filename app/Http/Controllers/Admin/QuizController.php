@@ -20,7 +20,7 @@ class QuizController extends Controller
     public function show($id)
     {
         $quiz = Quiz::with('questions.options')->findOrFail($id);
-        return view('student.quizzes.show', compact('quiz'));
+        return view('admin.quizzes.show', compact('quiz'));
     }
 
     public function destroy(Quiz $quiz)
