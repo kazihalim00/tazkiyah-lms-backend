@@ -180,14 +180,13 @@
                         @endif
                     </div>
 
-                    @if(auth()->user() && auth()->user()->image)
+                    @if(auth()->user()->image)
                         <img src="{{ asset('storage/' . auth()->user()->image) }}"
-                            onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=6366f1&color=fff&size=100';"
-                            class="h-10 w-10 rounded-full object-cover border-2 border-indigo-100 shadow-sm">
+                            class="h-10 w-10 rounded-full object-cover" alt="Profile Photo">
                     @else
                         <div
-                            class="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold uppercase shadow-sm">
-                            {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                            class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black">
+                            {{ substr(auth()->user()->name, 0, 1) }}
                         </div>
                     @endif
                 </button>

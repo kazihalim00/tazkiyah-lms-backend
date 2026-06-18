@@ -23,16 +23,19 @@
 
                 <!-- Profile Image Section -->
                 <div class="flex flex-col sm:flex-row items-center gap-6 mb-8">
-                    <div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-gray-700">Current Profile Photo</label>
                         @if(auth()->user()->image)
-                            <img src="{{ asset('storage/' . auth()->user()->image) }}" alt="Profile"
-                                class="h-24 w-24 rounded-full object-cover border-4 border-indigo-50 shadow-md">
+                            <img src="{{ asset('storage/' . auth()->user()->image) }}"
+                                class="h-24 w-24 rounded-full object-cover my-3 border-2 border-indigo-100" alt="Current Photo">
                         @else
-                            <div
-                                class="h-24 w-24 bg-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold text-white border-4 border-indigo-50 shadow-md uppercase">
-                                {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                            <div class="h-24 w-24 rounded-full bg-gray-100 flex items-center justify-center my-3 text-gray-400">
+                                No Image
                             </div>
                         @endif
+
+                        <input type="file" name="image"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                     </div>
                     <div class="text-center sm:text-left">
                         <h3 class="text-lg font-bold text-gray-800 mb-1">Profile Photo</h3>
