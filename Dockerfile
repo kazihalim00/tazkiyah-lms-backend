@@ -1,7 +1,7 @@
 # PHP 8.4 Apache base image
 FROM php:8.4-apache
 
-# Install required system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -25,10 +25,13 @@ RUN { \
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 
+# --- এখানে পোর্ট ফিক্স করা হয়েছে (Port 80 এর বদলে Render এর $PORT ব্যবহার করবে) ---
+RUN sed -i "s/80/\${PORT}/g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+
 # Copy application code
 COPY . /var/www/html/
 
-# Install Composer and dependencies
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --optimize-autoloader
@@ -41,6 +44,3 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["entrypoint.sh"]
-
-# Render uses port 80 by default
-EXPOSE 80
