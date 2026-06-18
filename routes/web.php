@@ -249,6 +249,9 @@ Route::middleware(['auth'])->group(function () {
     })->name('lesson.complete');
 
     // --- User Quizzes ---
+    // Student Quiz Routes
+    Route::get('/quizzes/{id}', [\App\Http\Controllers\StudentQuizController::class, 'show'])->name('student.quizzes.show');
+    Route::post('/quizzes/{id}/submit', [\App\Http\Controllers\StudentQuizController::class, 'submit'])->name('student.quizzes.submit');
     Route::get('/admin/quizzes/{id}/edit', [\App\Http\Controllers\Admin\QuizController::class, 'edit'])->name('admin.quizzes.edit');
     Route::put('/admin/quizzes/{id}', [\App\Http\Controllers\Admin\QuizController::class, 'update'])->name('admin.quizzes.update');
     Route::get('/quiz/{id}', [QuizController::class, 'show'])->name('quizzes.show');

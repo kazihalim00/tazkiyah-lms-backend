@@ -31,25 +31,37 @@ class QuizController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+
         // ১. কুইজ সেভ করা
-        $quiz = Quiz::create([
+        $quiz = \App\Models\Quiz::create([
             'title' => $request->title,
             'description' => $request->description,
         ]);
 
         // ২. প্রশ্ন ও অপশনগুলো সেভ করা
-        foreach ($request->questions as $qData) {
-            $question = $quiz->questions()->create(['question_text' => $qData['text']]);
+        if ($request->has('questions')) {
+            // এখানে $qIndex (যেমন: 1, 2, 3) ব্যবহার করছি
+            foreach ($request->questions as $qIndex => $qData) {
 
-            foreach ($qData['options'] as $index => $optionText) {
-                $question->options()->create([
-                    'option_text' => $optionText,
-                    'is_correct' => ($request->correct_option[$qData['id']] == $index)
+                $question = $quiz->questions()->create([
+                    'question_text' => $qData['text']
                 ]);
+
+                foreach ($qData['options'] as $oIndex => $optionText) {
+                    $question->options()->create([
+                        'option_text' => $optionText,
+                        // $qData['id'] এর বদলে $qIndex ব্যবহার করা হলো
+                        'is_correct' => (isset($request->correct_option[$qIndex]) && $request->correct_option[$qIndex] == $oIndex)
+                    ]);
+                }
             }
         }
 
-        return redirect()->back()->with('success', 'Quiz created successfully!');
+        return redirect()->route('admin.quizzes.index')->with('success', 'Quiz created successfully!');
     }
     // কুইজ এডিট পেজ দেখানোর জন্য
     public function edit($id)
