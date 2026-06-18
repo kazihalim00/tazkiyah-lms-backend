@@ -24,8 +24,8 @@ class PostController extends Controller
             dd("Error: 'feed.blade.php' file not found in resources/views/");
         }
 
- 
-        return view('community', compact('posts'));
+
+        return view('feed.index', compact('posts'));
     }
 
     public function store(Request $request)
