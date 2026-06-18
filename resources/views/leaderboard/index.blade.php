@@ -23,7 +23,9 @@
                 @endif
                 <div class="relative mb-4 mt-2">
                     @if($rankUser->image)
-                        <img src="{{ asset('storage/' . $rankUser->image) }}" class="h-20 w-20 rounded-full object-cover border-4 border-indigo-50" alt="Avatar">
+                        <img src="{{ asset('storage/' . $rankUser->image) }}" 
+                             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($rankUser->name) }}&background=6366f1&color=fff&size=100';"
+                             class="h-20 w-20 rounded-full object-cover border-4 border-indigo-50" alt="Avatar">
                     @else
                         <div class="h-20 w-20 bg-indigo-600 text-white rounded-full flex items-center justify-center font-black text-2xl uppercase shadow-sm">
                             {{ substr($rankUser->name, 0, 1) }}
@@ -61,7 +63,9 @@
                     <div class="flex items-center gap-6 w-full md:w-1/2">
                         <div class="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500">{{ $index + 4 }}</div>
                         @if($boardUser->image)
-                            <img src="{{ asset('storage/' . $boardUser->image) }}" class="h-10 w-10 rounded-full object-cover border" alt="Avatar">
+                            <img src="{{ asset('storage/' . $boardUser->image) }}" 
+                                 onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode($boardUser->name) }}&background=6366f1&color=fff&size=100';"
+                                 class="h-10 w-10 rounded-full object-cover border" alt="Avatar">
                         @else
                             <div class="h-10 w-10 rounded-full flex items-center justify-center font-black text-sm uppercase {{ $isCurrentUser ? 'bg-white/20' : 'bg-indigo-50 text-indigo-700' }}">{{ substr($boardUser->name, 0, 1) }}</div>
                         @endif

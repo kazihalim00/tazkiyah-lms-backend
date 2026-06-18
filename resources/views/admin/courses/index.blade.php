@@ -32,6 +32,11 @@
                     class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-4 py-3 rounded-xl transition">
                     📝 Add Lesson
                 </a>
+                <!-- কুইজ বাটনটি এখানে আনা হয়েছে -->
+                <a href="{{ route('admin.quizzes.index') }}"
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-4 py-3 rounded-xl transition">
+                    ❓ Manage Quizzes
+                </a>
             </div>
         </div>
 

@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Tazkiyah App')</title>
 
-    <!-- CSS and JS Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -26,15 +25,12 @@
 
 <body class="bg-gray-50 min-h-screen flex" x-data="{ mobileMenuOpen: false }">
 
-    <!-- Mobile Backdrop Overlay -->
     <div x-show="mobileMenuOpen" x-cloak x-transition.opacity @click="mobileMenuOpen = false"
         class="fixed inset-0 bg-black/40 z-20 md:hidden"></div>
 
-    <!-- Left Sidebar (fixed + off-canvas on mobile, static on desktop) -->
     <aside
         class="w-64 bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 left-0 h-full z-30 transform transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0"
         :class="{ 'translate-x-0': mobileMenuOpen }">
-        <!-- Logo Section -->
         <div class="p-6 border-b border-gray-100 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
                 <div
@@ -44,7 +40,6 @@
                 <span class="text-xl font-bold text-gray-800 tracking-tight">Tazkiyah</span>
             </div>
 
-            <!-- Mobile Close Button -->
             <button @click="mobileMenuOpen = false" class="md:hidden text-gray-400 hover:text-gray-600 p-1">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -52,7 +47,6 @@
             </button>
         </div>
 
-        <!-- Navigation Links -->
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto" @click="mobileMenuOpen = false">
             <a href="{{ url('/my-dashboard') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('my-dashboard') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-gray-500 hover:bg-gray-50' }}">
@@ -74,7 +68,6 @@
                 Courses (LMS)
             </a>
 
-            <!-- Community Feed Sidebar Link -->
             <a href="{{ route('feed.index') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition {{ Request::is('feed*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'text-gray-500 hover:bg-gray-50 hover:text-indigo-600' }}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,7 +88,6 @@
                 <span>Leaderboard</span>
             </a>
 
-            <!-- Sidebar Message Chat Link -->
             @php
                 $totalUnreadMessages = 0;
                 if (auth()->check()) {
@@ -124,7 +116,6 @@
                 @endif
             </a>
 
-            <!-- Admin Control Center -->
             @if(auth()->check() && auth()->user()->is_admin == 1)
                 <div class="mt-6 mb-2 px-6 text-[10px] font-black uppercase tracking-wider text-gray-400">
                     Control Center
@@ -143,7 +134,6 @@
             @endif
         </nav>
 
-        <!-- Logout Form -->
         <div class="p-4 border-t border-gray-100">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
@@ -155,12 +145,10 @@
         </div>
     </aside>
 
-    <!-- Main Content Area -->
     <main class="flex-1 md:ml-64 flex flex-col min-h-screen w-full">
         <header
             class="bg-white border-b border-gray-100 p-4 md:px-8 flex justify-between items-center sticky top-0 z-10">
             <div class="flex items-center gap-3 min-w-0">
-                <!-- Mobile Hamburger Button -->
                 <button @click="mobileMenuOpen = true"
                     class="md:hidden -ml-2 p-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +162,6 @@
                 </div>
             </div>
 
-            <!-- Profile Dropdown with Image -->
             <div class="relative shrink-0" x-data="{ open: false }">
                 <button @click="open = !open" class="flex items-center gap-3 hover:opacity-80 transition">
                     <div class="hidden sm:flex items-center gap-2">
@@ -195,6 +182,7 @@
 
                     @if(auth()->user() && auth()->user()->image)
                         <img src="{{ asset('storage/' . auth()->user()->image) }}"
+                            onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=6366f1&color=fff&size=100';"
                             class="h-10 w-10 rounded-full object-cover border-2 border-indigo-100 shadow-sm">
                     @else
                         <div
@@ -204,7 +192,6 @@
                     @endif
                 </button>
 
-                <!-- Dropdown Menu -->
                 <div x-show="open" @click.away="open = false" x-cloak
                     class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
 
@@ -226,7 +213,6 @@
             </div>
         </header>
 
-        <!-- Success Message -->
         @if(session('success'))
             <div class="px-4 md:px-8 pt-4 md:pt-6">
                 <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded shadow-sm">
