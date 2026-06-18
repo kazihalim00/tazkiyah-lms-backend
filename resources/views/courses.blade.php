@@ -31,8 +31,7 @@
 
                         <div
                             class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-indigo-700 text-[10px] font-black px-3 py-1 rounded-full shadow-sm uppercase tracking-wider">
-                            {{ $course->modules->sum(function ($module) {
-                        return $module->lessons->count(); }) }} LESSONS
+                            {{ $course->lessons->count() }} LESSONS
                         </div>
 
                         <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
