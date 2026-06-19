@@ -1,40 +1,90 @@
 @extends('layouts.app')
 
-@section('title', 'Hadith Corner')
-@section('header_title', 'Hadith Corner')
+@section('title', 'Manage Hadiths')
+@section('header_title', 'Admin Panel - Hadith Collection')
 
 @section('content')
     <div class="max-w-6xl mx-auto py-8">
-        <div class="text-center mb-12">
-            <h1 class="text-3xl md:text-4xl font-black text-gray-900 mb-4">Hadith Collection</h1>
-            <p class="text-gray-500 text-lg">Gain knowledge from authentic sources and earn points.</p>
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Manage Hadiths</h1>
+                <p class="text-sm text-gray-500 mt-1">View and manage all uploaded hadiths</p>
+            </div>
+            <a href="{{ route('admin.hadiths.create') }}"
+                class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-sm">
+                + Add New Hadith
+            </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            @forelse($categories as $category)
-                <a href="{{ route('hadiths.category', $category->slug) }}" class="group block">
-                    <div
-                        class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-indigo-100 transition-all duration-300 transform hover:-translate-y-1">
-                        <div
-                            class="h-14 w-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                </path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-800 mb-1">{{ $category->name_bn }}</h3>
-                        <p class="text-sm text-gray-400 font-bold uppercase tracking-wide mb-4">{{ $category->name_en }}</p>
-                        <div class="inline-block bg-gray-50 text-gray-600 text-xs font-bold px-3 py-1.5 rounded-lg">
-                            {{ $category->hadiths_count }} Hadiths
-                        </div>
-                    </div>
-                </a>
-            @empty
-                <div class="col-span-full text-center py-12">
-                    <p class="text-gray-400 font-bold">No collections available yet. Admin is working on it!</p>
-                </div>
-            @endforelse
+        @if(session('success'))
+            <div
+                class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-xl shadow-sm mb-6 font-bold flex items-center gap-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                            <th class="p-4 font-black border-b border-gray-100">Reference / Grade</th>
+                            <th class="p-4 font-black border-b border-gray-100">Category & Chapter</th>
+                            <th class="p-4 font-black border-b border-gray-100">Arabic / Bangla Snippet</th>
+                            <th class="p-4 font-black border-b border-gray-100">Points</th>
+                            <th class="p-4 font-black border-b border-gray-100 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($hadiths as $hadith)
+                            <tr class="hover:bg-gray-50/50 transition">
+                                <td class="p-4 align-top">
+                                    <span class="font-extrabold text-indigo-700 block">{{ $hadith->reference }}</span>
+                                    <span
+                                        class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded mt-1 inline-block">{{ $hadith->grade }}</span>
+                                </td>
+                                <td class="p-4 align-top">
+                                    <span class="font-bold text-gray-800 block">{{ $hadith->category->name_bn ?? 'N/A' }}</span>
+                                    @if($hadith->subCategory)
+                                        <span class="text-xs text-gray-500 font-bold block mt-0.5 truncate max-w-[200px]"
+                                            title="{{ $hadith->subCategory->name_bn }}">
+                                            ↳ {{ $hadith->subCategory->name_bn }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="p-4 align-top max-w-[300px]">
+                                    <p class="text-gray-900 font-bold text-sm truncate" dir="rtl">{{ $hadith->arabic_text }}</p>
+                                    <p class="text-gray-500 text-xs mt-1 truncate">{{ $hadith->bangla_text }}</p>
+                                </td>
+                                <td class="p-4 align-top text-gray-600 font-bold">
+                                    {{ $hadith->points }}
+                                </td>
+                                <td class="p-4 align-top text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button class="text-gray-400 hover:text-indigo-600 transition p-1"
+                                            title="Edit (Coming soon)">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-gray-400 font-bold">
+                                    No hadiths uploaded yet.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 @endsection
