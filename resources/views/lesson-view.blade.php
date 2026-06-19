@@ -58,20 +58,32 @@
                     </div>
                 @endif
                 @php
-                    $content = $lesson->content ?: 'No detailed content has been provided.';
+                    $formattedContent = preg_replace_callback(
+                        '/(https?:\/\/[^\s]+)/',
+                        function ($matches) {
+                            $url = $matches[0];
 
-                    $content = e($content);
+                            $isVideo = preg_match('/(youtube\.com|youtu\.be|vimeo\.com|\.mp4|\.mkv|\.avi)/i', $url);
 
-                    $formattedContent = preg_replace(
-                        '/(https?:\/\/[^\s<]+)/',
-                        '<a href="$1" target="_blank" class="text-indigo-600 font-bold underline break-all hover:text-indigo-800 transition">$1</a>',
-                        $content
+                            $buttonText = $isVideo ? 'Play Video' : 'Open Link';
+
+                            $icon = $isVideo
+                                ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>'
+                                : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>';
+
+                       
+                            return '<div class="mt-5 mb-2 block">
+                                                        <a href="' . $url . '" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 hover:-translate-y-0.5 transition-all duration-300">
+                                                            ' . $icon . '
+                                                            <span>' . $buttonText . '</span>
+                                                        </a>
+                                                    </div>';
+                        },
+                        $lesson->content ?? ''
                     );
-
-                    $formattedContent = nl2br($formattedContent);
                 @endphp
 
-                <div class="prose max-w-none text-gray-600 leading-relaxed mb-8">
+                <div class="text-gray-700 text-base leading-relaxed mt-4">
                     {!! $formattedContent !!}
                 </div>
 
