@@ -113,4 +113,34 @@ class FeedController extends Controller
 
         return back()->with('success', 'Reply added successfully!');
     }
+    public function destroy($id)
+    {
+        $post = \App\Models\Post::findOrFail($id);
+
+        if ($post->user_id == auth()->id() || auth()->user()->role == 'admin') {
+            $post->delete();
+            return back()->with('success', 'Post deleted successfully!');
+        }
+
+        return back()->with('error', 'Unauthorized action.');
+    }
+    public function report($id)
+    {
+      
+        $alreadyReported = \App\Models\PostReport::where('post_id', $id)
+            ->where('user_id', auth()->id())
+            ->exists();
+
+        if ($alreadyReported) {
+            return back()->with('error', 'You have already reported this post.');
+        }
+
+        \App\Models\PostReport::create([
+            'post_id' => $id,
+            'user_id' => auth()->id(),
+            'reason' => 'User reported this post' 
+        ]);
+
+        return back()->with('success', 'Post reported successfully! Admin will review it.');
+    }
 }

@@ -29,11 +29,29 @@
 
                         <div class="space-y-3 pl-5">
                             @foreach($question->options as $option)
+                                @php
+                                    // সাবমিট করার পর সাকসেস সেশন থাকলে এবং উত্তরটি সঠিক হলে ব্যাকগ্রাউন্ড সবুজ হবে
+                                    $isCorrect = session('success') && $option->is_correct;
+                                    $bgClass = $isCorrect ? 'bg-emerald-100 border-emerald-500' : 'bg-gray-50 border-transparent';
+                                    $textClass = $isCorrect ? 'text-emerald-800 font-bold' : 'text-gray-700 font-medium';
+                                    
+                                    // সাবমিট করার পর hover ইফেক্ট আর কার্সর পয়েন্টার বন্ধ করে দেওয়া
+                                    $hoverClass = session('success') ? 'cursor-default' : 'cursor-pointer hover:bg-gray-50 hover:border-gray-100';
+                                @endphp
+
                                 <label
-                                    class="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition">
-                                    <input type="radio" name="answers[{{ $question->id }}]" value="{{ $option->id }}" required
-                                        class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500">
-                                    <span class="text-gray-700 font-medium">{{ $option->option_text }}</span>
+                                    class="flex items-center gap-3 p-3 rounded-xl border {{ $bgClass }} {{ $hoverClass }} transition">
+                                    <input type="radio" name="answers[{{ $question->id }}]" value="{{ $option->id }}"
+                                        class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500"
+                                        {{ session('success') ? 'disabled' : 'required' }}>
+                                    
+                                    <span class="{{ $textClass }}">
+                                        {{ $option->option_text }}
+
+                                        @if($isCorrect)
+                                            <svg class="w-5 h-5 inline-block ml-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        @endif
+                                    </span>
                                 </label>
                             @endforeach
                         </div>
@@ -42,11 +60,19 @@
             </div>
 
             <div class="mt-8 flex justify-end">
-                <button type="submit"
-                    class="bg-indigo-600 text-white px-10 py-3.5 rounded-xl font-black hover:bg-indigo-700 transition shadow-md text-lg">
-                    Submit Quiz
-                </button>
+                @if(!session('success'))
+                    <button type="submit"
+                        class="bg-indigo-600 text-white px-10 py-3.5 rounded-xl font-black hover:bg-indigo-700 transition shadow-md text-lg">
+                        Submit Quiz
+                    </button>
+                @else
+                    <a href="{{ url('/my-dashboard') }}"
+                        class="bg-gray-800 text-white px-10 py-3.5 rounded-xl font-black hover:bg-gray-700 transition shadow-md text-lg">
+                        Back to Dashboard
+                    </a>
+                @endif
             </div>
+            
         </form>
     </div>
 @endsection

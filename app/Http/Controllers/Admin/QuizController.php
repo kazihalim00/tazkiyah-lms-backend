@@ -40,15 +40,15 @@ class QuizController extends Controller
             'description' => 'required|string',
         ]);
 
-        // ১. কুইজ সেভ করা
+
         $quiz = \App\Models\Quiz::create([
             'title' => $request->title,
             'description' => $request->description,
         ]);
 
-        // ২. প্রশ্ন ও অপশনগুলো সেভ করা
+
         if ($request->has('questions')) {
-            // এখানে $qIndex (যেমন: 1, 2, 3) ব্যবহার করছি
+
             foreach ($request->questions as $qIndex => $qData) {
 
                 $question = $quiz->questions()->create([
@@ -67,14 +67,14 @@ class QuizController extends Controller
 
         return redirect()->route('admin.quizzes.index')->with('success', 'Quiz created successfully!');
     }
-    // কুইজ এডিট পেজ দেখানোর জন্য
+
     public function edit($id)
     {
         $quiz = \App\Models\Quiz::findOrFail($id);
         return view('admin.quizzes.edit', compact('quiz'));
     }
 
-    // কুইজ আপডেট করার জন্য
+
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -87,6 +87,40 @@ class QuizController extends Controller
             'title' => $request->title,
             'description' => $request->description,
         ]);
+
+
+        if ($request->has('questions')) {
+            foreach ($request->questions as $qIndex => $qData) {
+
+
+                if (isset($qData['id'])) {
+                    $question = $quiz->questions()->find($qData['id']);
+                    if ($question) {
+                        $question->update(['question_text' => $qData['text']]);
+
+                        $question->options()->delete();
+                        foreach ($qData['options'] as $oIndex => $optionText) {
+                            $question->options()->create([
+                                'option_text' => $optionText,
+                                'is_correct' => (isset($request->correct_option[$qIndex]) && $request->correct_option[$qIndex] == $oIndex)
+                            ]);
+                        }
+                    }
+                } else {
+                    $question = $quiz->questions()->create([
+                        'question_text' => $qData['text']
+                    ]);
+
+                    foreach ($qData['options'] as $oIndex => $optionText) {
+                        $question->options()->create([
+                            'option_text' => $optionText,
+                            'is_correct' => (isset($request->correct_option[$qIndex]) && $request->correct_option[$qIndex] == $oIndex)
+                        ]);
+                    }
+                }
+            }
+        }
+
 
         return redirect()->route('admin.quizzes.index')->with('success', 'Quiz details updated successfully!');
     }

@@ -181,7 +181,9 @@ Route::middleware(['auth'])->group(function () {
     // Updated to use PostController for the main feed and post creation (handles Cloudinary)
     Route::get('/feed', [PostController::class, 'index'])->name('feed.index');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::delete('/posts/{id}', [App\Http\Controllers\FeedController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::post('/posts/{id}/report', [App\Http\Controllers\FeedController::class, 'report'])->name('posts.report');
 
     // Likes & Comments handled by FeedController
     Route::post('/feed/posts/{post}/like', [FeedController::class, 'toggleLike'])->name('posts.like');

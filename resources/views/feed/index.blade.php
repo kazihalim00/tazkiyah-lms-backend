@@ -42,6 +42,7 @@
         <div class="space-y-6">
             @forelse($posts as $post)
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+                        
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 @if($post->user->image)
@@ -60,9 +61,32 @@
                                         @endif
                                     </h4>
                                     <p class="text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-wide">
-                                        {{ $post->created_at->diffForHumans() }} • <span class="text-indigo-600 font-black">{{ $post->user->level }}</span>
+                                        {{ $post->created_at->diffForHumans() }} • <span class="text-indigo-600 font-black">{{ $post->user->level ?? 'Beginner' }}</span>
                                     </p>
                                 </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                @if(auth()->id() == $post->user_id || auth()->user()->role == 'admin')
+                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST" class="inline">
+                                        @csrf 
+                                        @method('DELETE')
+                                        <button type="submit" onclick="return confirm('Are you sure you want to delete this post?')" 
+                                                class="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            Delete
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('posts.report', $post->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" onclick="return confirm('Do you want to report this post to the admin?')" 
+                                                class="text-amber-600 hover:text-amber-800 text-xs font-bold flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                            Report
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
 
