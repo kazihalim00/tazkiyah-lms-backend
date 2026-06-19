@@ -26,7 +26,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Select Existing Category</label>
-                        <select name="category_id" class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
+                        <select name="category_id" id="category-select"
+                            class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
                             <option value="">-- Choose Category --</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name_bn }} ({{ $category->name_en }})</option>
@@ -39,6 +40,27 @@
                             class="w-full border-gray-200 rounded-xl p-3 mb-2 focus:ring-indigo-500">
                         <input type="text" name="new_category_en" placeholder="Category Name (English) e.g. Aqeeda"
                             class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                <h3 class="font-bold text-blue-800 mb-4">Chapter / Sub Category (পরিচ্ছেদ)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Select Existing Chapter</label>
+                        <select name="sub_category_id" id="sub-category-select"
+                            class="w-full border-gray-200 rounded-xl p-3 focus:ring-blue-500">
+                            <option value="">-- Choose Chapter --</option>
+                        </select>
+                    </div>
+                    <div class="border-l-2 border-blue-200 pl-4">
+                        <label class="block text-sm font-bold text-blue-600 mb-2">OR Create New Chapter</label>
+                        <input type="text" name="new_sub_category_bn"
+                            placeholder="Chapter Name (Bangla) e.g. ২/২. তোমাদের দু'আ..."
+                            class="w-full border-gray-200 rounded-xl p-3 mb-2 focus:ring-blue-500">
+                        <input type="text" name="new_sub_category_en" placeholder="Chapter Name (English)"
+                            class="w-full border-gray-200 rounded-xl p-3 focus:ring-blue-500">
                     </div>
                 </div>
             </div>
@@ -103,5 +125,27 @@
                 </button>
             </div>
         </form>
+
+        <script>
+            const categoriesData = @json($categories);
+
+            document.getElementById('category-select').addEventListener('change', function () {
+                const catId = this.value;
+                const subSelect = document.getElementById('sub-category-select');
+                subSelect.innerHTML = '<option value="">-- Choose Chapter --</option>';
+
+                if (catId) {
+                    const selectedCat = categoriesData.find(c => c.id == catId);
+                    if (selectedCat && selectedCat.sub_categories) {
+                        selectedCat.sub_categories.forEach(sub => {
+                            const opt = document.createElement('option');
+                            opt.value = sub.id;
+                            opt.textContent = sub.name_bn + (sub.name_en ? ` (${sub.name_en})` : '');
+                            subSelect.appendChild(opt);
+                        });
+                    }
+                }
+            });
+        </script>
     </div>
 @endsection

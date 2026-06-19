@@ -17,9 +17,21 @@ class HadithController extends Controller
 
     public function category($slug)
     {
-        $category = HadithCategory::where('slug', $slug)->firstOrFail();
-        $hadiths = $category->hadiths()->latest()->get();
-        return view('hadiths.show', compact('category', 'hadiths'));
+        $category = \App\Models\HadithCategory::where('slug', $slug)->firstOrFail();
+
+        $subCategories = \App\Models\HadithSubCategory::where('category_id', $category->id)
+            ->with([
+                'hadiths' => function ($q) {
+                    $q->latest();
+                }
+            ])
+            ->get();
+
+        $uncategorizedHadiths = \App\Models\Hadith::where('category_id', $category->id)
+            ->whereNull('sub_category_id')
+            ->latest()->get();
+
+        return view('hadiths.show', compact('category', 'subCategories', 'uncategorizedHadiths'));
     }
 
     public function markAsRead($id)
@@ -42,4 +54,5 @@ class HadithController extends Controller
 
         return back()->with('info', 'You have already read this hadith.');
     }
+
 }

@@ -9,6 +9,7 @@ class Hadith extends Model
     protected $fillable = [
         'category_id',
         'arabic_text',
+        'sub_category_id',
         'bangla_text',
         'english_text',
         'reference',
@@ -31,5 +32,9 @@ class Hadith extends Model
     public function isReadBy($userId)
     {
         return $this->readers()->where('user_id', $userId)->exists();
+    }
+    public function subCategory()
+    {
+        return $this->belongsTo(HadithSubCategory::class, 'sub_category_id');
     }
 }

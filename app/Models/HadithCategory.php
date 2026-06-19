@@ -13,4 +13,8 @@ class HadithCategory extends Model
     {
         return $this->hasMany(Hadith::class, 'category_id');
     }
+    public function subCategories()
+    {
+        return $this->hasMany(HadithSubCategory::class, 'category_id');
+    }
 }

@@ -18,7 +18,7 @@ class HadithController extends Controller
 
     public function create()
     {
-        $categories = HadithCategory::all();
+        $categories = HadithCategory::with('subCategories')->get();
         return view('admin.hadiths.create', compact('categories'));
     }
 
@@ -36,13 +36,25 @@ class HadithController extends Controller
             $category = HadithCategory::create([
                 'name_bn' => $request->new_category_bn,
                 'name_en' => $request->new_category_en,
-                'slug' => Str::slug($request->new_category_en ?? $request->new_category_bn) . '-' . time()
+                'slug' => \Illuminate\Support\Str::slug($request->new_category_en ?? $request->new_category_bn) . '-' . time()
             ]);
             $categoryId = $category->id;
         }
 
-        Hadith::create([
+        $subCategoryId = $request->sub_category_id;
+
+        if ($request->filled('new_sub_category_bn') && $categoryId) {
+            $subCategory = \App\Models\HadithSubCategory::create([
+                'category_id' => $categoryId,
+                'name_bn' => $request->new_sub_category_bn,
+                'name_en' => $request->new_sub_category_en,
+            ]);
+            $subCategoryId = $subCategory->id;
+        }
+
+        \App\Models\Hadith::create([
             'category_id' => $categoryId,
+            'sub_category_id' => $subCategoryId,
             'arabic_text' => $request->arabic_text,
             'bangla_text' => $request->bangla_text,
             'english_text' => $request->english_text,
@@ -55,4 +67,5 @@ class HadithController extends Controller
 
         return redirect()->back()->with('success', 'Hadith added successfully!');
     }
+
 }
