@@ -57,8 +57,22 @@
                         </div>
                     </div>
                 @endif
+                @php
+                    $content = $lesson->content ?: 'No detailed content has been provided.';
+
+                    $content = e($content);
+
+                    $formattedContent = preg_replace(
+                        '/(https?:\/\/[^\s<]+)/',
+                        '<a href="$1" target="_blank" class="text-indigo-600 font-bold underline break-all hover:text-indigo-800 transition">$1</a>',
+                        $content
+                    );
+
+                    $formattedContent = nl2br($formattedContent);
+                @endphp
+
                 <div class="prose max-w-none text-gray-600 leading-relaxed mb-8">
-                    {!! nl2br(e($lesson->content ?: 'No detailed content has been provided.')) !!}
+                    {!! $formattedContent !!}
                 </div>
 
                 @if($lesson->quiz && $lesson->quiz->questions->count() > 0)
