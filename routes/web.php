@@ -341,6 +341,9 @@ Route::get('/check-db', function () {
 
 // Admin Hadith Routes
 Route::prefix('admin')->middleware(['auth'])->group(function () {
+    Route::get('/hadiths/{id}/edit', [App\Http\Controllers\Admin\HadithController::class, 'edit'])->name('admin.hadiths.edit');
+    Route::put('/hadiths/{id}', [App\Http\Controllers\Admin\HadithController::class, 'update'])->name('admin.hadiths.update');
+
     Route::get('/hadiths', [App\Http\Controllers\Admin\HadithController::class, 'index'])->name('admin.hadiths.index');
     Route::get('/hadiths/create', [App\Http\Controllers\Admin\HadithController::class, 'create'])->name('admin.hadiths.create');
     Route::post('/hadiths', [App\Http\Controllers\Admin\HadithController::class, 'store'])->name('admin.hadiths.store');
@@ -348,7 +351,9 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
 
 // Student/User Hadith Routes
 Route::middleware(['auth'])->group(function () {
+    Route::get('/hadiths/chapter/{id}', [App\Http\Controllers\HadithController::class, 'chapter'])->name('hadiths.chapter');
     Route::get('/hadiths', [App\Http\Controllers\HadithController::class, 'index'])->name('hadiths.index');
     Route::get('/hadiths/category/{slug}', [App\Http\Controllers\HadithController::class, 'category'])->name('hadiths.category');
     Route::post('/hadiths/{id}/read', [App\Http\Controllers\HadithController::class, 'markAsRead'])->name('hadiths.read');
 });
+

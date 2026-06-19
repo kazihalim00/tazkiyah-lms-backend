@@ -64,14 +64,15 @@
                                 </td>
                                 <td class="p-4 align-top text-center">
                                     <div class="flex items-center justify-center gap-2">
-                                        <button class="text-gray-400 hover:text-indigo-600 transition p-1"
-                                            title="Edit (Coming soon)">
+                                        <<a href="{{ route('admin.hadiths.edit', $hadith->id) }}"
+                                            class="text-indigo-500 hover:text-indigo-700 transition p-1 bg-indigo-50 hover:bg-indigo-100 rounded"
+                                            title="Edit Hadith">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                                 </path>
                                             </svg>
-                                        </button>
+                                            </a>
                                     </div>
                                 </td>
                             </tr>

@@ -67,5 +67,36 @@ class HadithController extends Controller
 
         return redirect()->back()->with('success', 'Hadith added successfully!');
     }
+    public function edit($id)
+    {
+        $hadith = \App\Models\Hadith::findOrFail($id);
+        $categories = \App\Models\HadithCategory::with('subCategories')->get();
+        return view('admin.hadiths.edit', compact('hadith', 'categories'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'arabic_text' => 'required',
+            'bangla_text' => 'required',
+            'reference' => 'required',
+        ]);
+
+        $hadith = \App\Models\Hadith::findOrFail($id);
+        $hadith->update([
+            'category_id' => $request->category_id,
+            'sub_category_id' => $request->sub_category_id,
+            'arabic_text' => $request->arabic_text,
+            'bangla_text' => $request->bangla_text,
+            'english_text' => $request->english_text,
+            'reference' => $request->reference,
+            'grade' => $request->grade ?? 'সহীহ',
+            'explanation' => $request->explanation,
+            'source_url' => $request->source_url,
+            'points' => $request->points ?? 5,
+        ]);
+
+        return redirect()->route('admin.hadiths.index')->with('success', 'Hadith updated successfully!');
+    }
 
 }
