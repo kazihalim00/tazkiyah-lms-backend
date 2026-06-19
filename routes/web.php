@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\QuizController as AdminQuizController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\ModuleController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
+use App\Http\Controllers\Admin\HadithController;
 
 /*
 |--------------------------------------------------------------------------
@@ -336,4 +337,18 @@ Route::get('/check-db', function () {
     } catch (\Exception $e) {
         return "Connection Error: " . $e->getMessage();
     }
+});
+
+// Admin Hadith Routes
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    Route::get('/hadiths', [App\Http\Controllers\Admin\HadithController::class, 'index'])->name('admin.hadiths.index');
+    Route::get('/hadiths/create', [App\Http\Controllers\Admin\HadithController::class, 'create'])->name('admin.hadiths.create');
+    Route::post('/hadiths', [App\Http\Controllers\Admin\HadithController::class, 'store'])->name('admin.hadiths.store');
+});
+
+// Student/User Hadith Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/hadiths', [App\Http\Controllers\HadithController::class, 'index'])->name('hadiths.index');
+    Route::get('/hadiths/category/{slug}', [App\Http\Controllers\HadithController::class, 'category'])->name('hadiths.category');
+    Route::post('/hadiths/{id}/read', [App\Http\Controllers\HadithController::class, 'markAsRead'])->name('hadiths.read');
 });
