@@ -123,8 +123,19 @@
                                                             Delete
                                                         </button>
                                                     </form>
+                                                    <form action="{{ route('admin.courses.archive', $course->id) }}" method="POST"
+                                                        class="inline">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            onclick="return confirm('Are you sure you want to {{ $course->is_archived ? 'unarchive' : 'archive' }} this course?')"
+                                                            class="{{ $course->is_archived ? 'text-emerald-500 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-500 hover:text-amber-700 bg-amber-50 hover:bg-amber-100' }} text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                                                            {{ $course->is_archived ? 'Unarchive' : 'Archive' }}
+                                                        </button>
+                                                    </form>
                                                 </div>
                                             </td>
+
+
                                         </tr>
                         @empty
                             <tr>

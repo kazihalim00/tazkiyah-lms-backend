@@ -56,4 +56,13 @@ class CourseController extends Controller
         $course->delete();
         return redirect()->route('admin.courses.index')->with('success', 'Course deleted successfully!');
     }
+    public function toggleArchive($id)
+    {
+        $course = \App\Models\Course::findOrFail($id);
+        $course->is_archived = !$course->is_archived;
+        $course->save();
+
+        $status = $course->is_archived ? 'archived' : 'unarchived';
+        return back()->with('success', "Course successfully {$status}!");
+    }
 }

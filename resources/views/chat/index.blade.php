@@ -26,9 +26,12 @@
 
                         <div class="flex items-center gap-3.5 min-w-0">
                             @if($partner->image)
-                                <img src="{{ asset('storage/' . $partner->image) }}"
+                                <img src="{{ str_starts_with($partner->image, 'http') ? $partner->image : asset('storage/' . $partner->image) }}"
                                     class="h-12 w-12 rounded-full object-cover border-2 {{ $isActive ? 'border-white/30' : 'border-white shadow-sm' }}"
                                     alt="Profile">
+                                class="h-12 w-12 rounded-full object-cover border-2
+                                {{ $isActive ? 'border-white/30' : 'border-white shadow-sm' }}"
+                                alt="Profile">
                             @else
                                 <div
                                     class="h-12 w-12 rounded-full flex items-center justify-center font-black text-base uppercase shadow-sm {{ $isActive ? 'bg-white/20 text-white border border-white/30' : 'bg-indigo-50 text-indigo-700 border border-white' }}">
@@ -37,10 +40,12 @@
                             @endif
                             <div class="min-w-0">
                                 <h4 class="font-extrabold text-sm truncate {{ $isActive ? 'text-white' : 'text-gray-900' }}">
-                                    {{ $partner->name }}</h4>
+                                    {{ $partner->name }}
+                                </h4>
                                 <p
                                     class="text-[10px] font-bold mt-0.5 uppercase tracking-wide {{ $isActive ? 'text-indigo-200' : 'text-gray-400' }}">
-                                    {{ $partner->level ?? 'Member' }}</p>
+                                    {{ $partner->level ?? 'Member' }}
+                                </p>
                             </div>
                         </div>
                     </a>
@@ -72,8 +77,9 @@
                     </button>
 
                     @if($selectedPartner->image)
-                        <img src="{{ asset('storage/' . $selectedPartner->image) }}"
-                            class="h-10 w-10 rounded-full object-cover border border-gray-100" alt="Profile">
+                        <img src="{{ str_starts_with($selectedPartner->image, 'http') ? $selectedPartner->image : asset('storage/' . $selectedPartner->image) }}"
+                            class="h-10 w-10 rounded-full object-cover border border-gray-100" alt="Profile"> class="h-10 w-10
+                        rounded-full object-cover border border-gray-100" alt="Profile">
                     @else
                         <div
                             class="h-10 w-10 rounded-full flex items-center justify-center font-black text-xs uppercase bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100">
@@ -222,11 +228,11 @@
 
                         // Generate new message HTML with smooth slide-up animation effect
                         let html = `
-                            <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
-                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
-                                    <p>${msg}</p>
-                                </div>
-                            </div>`;
+                                    <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
+                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
+                                            <p>${msg}</p>
+                                        </div>
+                                    </div>`;
 
                         let newElement = $(html).appendTo('#chat-stream-box');
 

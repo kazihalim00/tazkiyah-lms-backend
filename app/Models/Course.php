@@ -9,7 +9,9 @@ class Course extends Model
     protected $fillable = [
         'title',
         'description',
-        'level'
+        'level',
+        'thumbnail', 
+        'is_archived'
     ];
 
     public function modules()
