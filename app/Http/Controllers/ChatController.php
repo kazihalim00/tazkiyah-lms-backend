@@ -1,10 +1,9 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\PartnerMessage; // Using our new collision-free messaging model
+use App\Models\PartnerMessage;
 use App\Models\AccountabilityPartner;
 use Illuminate\Support\Facades\Auth;
 
@@ -49,6 +48,7 @@ class ChatController extends Controller
             PartnerMessage::where('sender_id', $partnerId)->where('receiver_id', $user->id)->update(['is_read' => true]);
         }
 
+
         return view('chat.index', compact('activePartners', 'selectedPartner', 'messages'));
     }
 
@@ -70,7 +70,7 @@ class ChatController extends Controller
             })->exists();
 
         if (!$isPartner) {
-            abort(403, 'Unauthorized chat attempt.');
+            return response()->json(['success' => false, 'message' => 'Unauthorized chat attempt.'], 403);
         }
 
         // Saving directly into the new partner_messages table
@@ -80,6 +80,7 @@ class ChatController extends Controller
             'message' => $request->message
         ]);
 
-        return redirect()->route('chat.index', $partnerId);
+        // AJAX এর জন্য JSON রেসপন্স পাঠাচ্ছি (আগের redirect রিমুভ করে দিয়েছি)
+        return response()->json(['success' => true]);
     }
 }
