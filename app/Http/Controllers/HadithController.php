@@ -34,7 +34,7 @@ class HadithController extends Controller
 
     public function chapter($id)
     {
-       
+
         $subCategory = \App\Models\HadithSubCategory::with('category')->findOrFail($id);
         $hadiths = \App\Models\Hadith::where('sub_category_id', $id)->latest()->get();
 
@@ -43,18 +43,18 @@ class HadithController extends Controller
 
     public function markAsRead($id)
     {
-        $hadith = Hadith::findOrFail($id);
+        $hadith = \App\Models\Hadith::findOrFail($id);
         $user = auth()->user();
 
+
         if (!$hadith->isReadBy($user->id)) {
-            UserHadithProgress::create([
+            \App\Models\UserHadithProgress::create([
                 'user_id' => $user->id,
                 'hadith_id' => $hadith->id
             ]);
 
-            if (\Schema::hasColumn('users', 'points')) {
-                $user->increment('points', $hadith->points);
-            }
+    
+            $user->increment('total_points', $hadith->points);
 
             return back()->with('success', 'Alhamdulillah! ' . $hadith->points . ' points added to your profile for gaining knowledge.');
         }
