@@ -29,9 +29,6 @@
                                 <img src="{{ str_starts_with($partner->image, 'http') ? $partner->image : asset('storage/' . $partner->image) }}"
                                     class="h-12 w-12 rounded-full object-cover border-2 {{ $isActive ? 'border-white/30' : 'border-white shadow-sm' }}"
                                     alt="Profile">
-                                class="h-12 w-12 rounded-full object-cover border-2
-                                {{ $isActive ? 'border-white/30' : 'border-white shadow-sm' }}"
-                                alt="Profile">
                             @else
                                 <div
                                     class="h-12 w-12 rounded-full flex items-center justify-center font-black text-base uppercase shadow-sm {{ $isActive ? 'bg-white/20 text-white border border-white/30' : 'bg-indigo-50 text-indigo-700 border border-white' }}">
@@ -78,8 +75,7 @@
 
                     @if($selectedPartner->image)
                         <img src="{{ str_starts_with($selectedPartner->image, 'http') ? $selectedPartner->image : asset('storage/' . $selectedPartner->image) }}"
-                            class="h-10 w-10 rounded-full object-cover border border-gray-100" alt="Profile"> class="h-10 w-10
-                        rounded-full object-cover border border-gray-100" alt="Profile">
+                            class="h-10 w-10 rounded-full object-cover border border-gray-100" alt="Profile">
                     @else
                         <div
                             class="h-10 w-10 rounded-full flex items-center justify-center font-black text-xs uppercase bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100">
@@ -179,7 +175,6 @@
         $(document).ready(function () {
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-            // Function for smooth scroll to bottom
             function scrollToBottom(animate = false) {
                 let box = $('#chat-stream-box');
                 if (box.length > 0) {
@@ -191,15 +186,12 @@
                 }
             }
 
-            // Initially scroll down
             scrollToBottom();
 
-            // Auto-focus input on desktop only
             if (window.innerWidth > 768 && $('#message-input').length > 0) {
                 $('#message-input').focus();
             }
 
-            // Form Submission via AJAX
             $('#chat-form').on('submit', function (e) {
                 e.preventDefault();
 
@@ -208,13 +200,11 @@
                 let msg = input.val().trim();
                 let btn = $('#send-btn');
 
-                // The SVG Icon for the send button
                 let sendIcon = '<svg class="w-5 h-5 ml-0.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>';
                 let spinnerIcon = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
 
                 if (msg === "") return;
 
-                // Loading state
                 input.prop('disabled', true);
                 btn.prop('disabled', true).html(spinnerIcon);
 
@@ -223,20 +213,17 @@
                     method: 'POST',
                     data: form.serialize(),
                     success: function (response) {
-                        // Remove the 'empty state' message if it exists
                         $('#chat-stream-box').find('.opacity-60').remove();
 
-                        // Generate new message HTML with smooth slide-up animation effect
                         let html = `
-                                    <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
-                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
-                                            <p>${msg}</p>
-                                        </div>
-                                    </div>`;
+                                            <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
+                                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
+                                                    <p>${msg}</p>
+                                                </div>
+                                            </div>`;
 
                         let newElement = $(html).appendTo('#chat-stream-box');
 
-                        // Trigger reflow and animate
                         setTimeout(() => {
                             newElement.removeClass('opacity-0 translate-y-4');
                         }, 50);
@@ -245,7 +232,6 @@
                         scrollToBottom(true);
                     },
                     complete: function () {
-                        // Restore state
                         input.prop('disabled', false);
                         if (window.innerWidth > 768) input.focus();
                         btn.prop('disabled', false).html(sendIcon);

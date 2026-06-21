@@ -53,7 +53,7 @@ class HadithController extends Controller
                 'hadith_id' => $hadith->id
             ]);
 
-    
+
             $user->increment('total_points', $hadith->points);
 
             return back()->with('success', 'Alhamdulillah! ' . $hadith->points . ' points added to your profile for gaining knowledge.');
