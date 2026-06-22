@@ -203,8 +203,10 @@
 
                 let sendIcon = '<svg class="w-5 h-5 ml-0.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>';
                 let spinnerIcon = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-
                 if (msg === "") return;
+
+     
+                let formData = form.serialize();
 
                 input.prop('disabled', true);
                 btn.prop('disabled', true).html(spinnerIcon);
@@ -212,7 +214,7 @@
                 $.ajax({
                     url: form.attr('action'),
                     method: 'POST',
-                    data: form.serialize(),
+                    data: formData, 
                     dataType: 'json',
                     success: function (response) {
                         if (response.success === true) {
