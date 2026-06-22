@@ -56,7 +56,12 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Hadith Number</label>
+                    <input type="text" name="hadith_number" value="{{ $hadith->hadith_number }}"
+                        class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
+                </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">Reference</label>
                     <input type="text" name="reference" value="{{ $hadith->reference }}" required

@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\DashboardController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']); // <-- New Registration Route
+Route::post('/register', [AuthController::class, 'register']); 
 Route::get('/lms-levels', [LmsController::class, 'getLevelsWithModules']);
 
 // Protected Routes (Requires Token)

@@ -36,7 +36,7 @@ class HadithController extends Controller
             $category = HadithCategory::create([
                 'name_bn' => $request->new_category_bn,
                 'name_en' => $request->new_category_en,
-                'slug' => \Illuminate\Support\Str::slug($request->new_category_en ?? $request->new_category_bn) . '-' . time()
+                'slug' => Str::slug($request->new_category_en ?? $request->new_category_bn) . '-' . time()
             ]);
             $categoryId = $category->id;
         }
@@ -52,9 +52,10 @@ class HadithController extends Controller
             $subCategoryId = $subCategory->id;
         }
 
-        \App\Models\Hadith::create([
+        Hadith::create([
             'category_id' => $categoryId,
             'sub_category_id' => $subCategoryId,
+            'hadith_number' => $request->hadith_number, // হাদিস নাম্বার যুক্ত করা হলো
             'arabic_text' => $request->arabic_text,
             'bangla_text' => $request->bangla_text,
             'english_text' => $request->english_text,
@@ -67,10 +68,11 @@ class HadithController extends Controller
 
         return redirect()->back()->with('success', 'Hadith added successfully!');
     }
+
     public function edit($id)
     {
-        $hadith = \App\Models\Hadith::findOrFail($id);
-        $categories = \App\Models\HadithCategory::with('subCategories')->get();
+        $hadith = Hadith::findOrFail($id);
+        $categories = HadithCategory::with('subCategories')->get();
         return view('admin.hadiths.edit', compact('hadith', 'categories'));
     }
 
@@ -82,10 +84,11 @@ class HadithController extends Controller
             'reference' => 'required',
         ]);
 
-        $hadith = \App\Models\Hadith::findOrFail($id);
+        $hadith = Hadith::findOrFail($id);
         $hadith->update([
             'category_id' => $request->category_id,
             'sub_category_id' => $request->sub_category_id,
+            'hadith_number' => $request->hadith_number, 
             'arabic_text' => $request->arabic_text,
             'bangla_text' => $request->bangla_text,
             'english_text' => $request->english_text,
@@ -98,5 +101,4 @@ class HadithController extends Controller
 
         return redirect()->route('admin.hadiths.index')->with('success', 'Hadith updated successfully!');
     }
-
 }

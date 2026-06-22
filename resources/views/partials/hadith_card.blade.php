@@ -1,11 +1,26 @@
 <div
     class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden transition-all hover:shadow-md">
-    <div
-        class="absolute top-6 right-6 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-black tracking-wide border border-emerald-200">
-        {{ $hadith->grade }}
+
+    <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+        <div>
+            @if($hadith->hadith_number)
+                <span
+                    class="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-xl text-sm font-black tracking-wide border border-indigo-100 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                    </svg>
+                    হাদিস নং: {{ $hadith->hadith_number }}
+                </span>
+            @endif
+        </div>
+        <div
+            class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-black tracking-wide border border-emerald-200">
+            {{ $hadith->grade }}
+        </div>
     </div>
 
-    <div class="mt-8 mb-8 text-right">
+    <div class="mb-8 mt-4 text-right">
         <p class="text-3xl leading-relaxed text-gray-800 font-bold" dir="rtl" style="line-height: 2;">
             {{ $hadith->arabic_text }}
         </p>

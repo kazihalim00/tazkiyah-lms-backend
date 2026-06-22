@@ -57,7 +57,7 @@
                     <div class="border-l-2 border-blue-200 pl-4">
                         <label class="block text-sm font-bold text-blue-600 mb-2">OR Create New Chapter</label>
                         <input type="text" name="new_sub_category_bn"
-                            placeholder="Chapter Name (Bangla) e.g. ২/২. তোমাদের দু'আ..."
+                            placeholder="Chapter Name (Bangla) e.g. সাধারণ হাদিসসমূহ"
                             class="w-full border-gray-200 rounded-xl p-3 mb-2 focus:ring-blue-500">
                         <input type="text" name="new_sub_category_en" placeholder="Chapter Name (English)"
                             class="w-full border-gray-200 rounded-xl p-3 focus:ring-blue-500">
@@ -86,11 +86,16 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Hadith Number</label>
+                    <input type="text" name="hadith_number" placeholder="e.g. 1"
+                        class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
+                </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">Reference <span
                             class="text-red-500">*</span></label>
-                    <input type="text" name="reference" required placeholder="e.g. সহীহ বুখারী, হাদিস ১"
+                    <input type="text" name="reference" required placeholder="e.g. সহীহ বুখারী"
                         class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
                 </div>
                 <div>
@@ -99,7 +104,7 @@
                         class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Points for Reading</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Points</label>
                     <input type="number" name="points" value="5"
                         class="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500">
                 </div>

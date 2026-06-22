@@ -14,6 +14,7 @@ class Hadith extends Model
         'english_text',
         'reference',
         'grade',
+        'hadith_number',
         'explanation',
         'source_url',
         'points'
