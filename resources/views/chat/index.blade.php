@@ -212,32 +212,44 @@
                     url: form.attr('action'),
                     method: 'POST',
                     data: form.serialize(),
+                    dataType: 'json', // লারাভেলকে বাধ্য করা হচ্ছে JSON রেসপন্স দিতে
                     success: function (response) {
-                        $('#chat-stream-box').find('.opacity-60').remove();
+                        if (response.success === true) {
+                            // Remove the 'empty state' message if it exists
+                            $('#chat-stream-box').find('.opacity-60').remove();
 
-                        let html = `
+                            // Generate new message HTML with smooth slide-up animation effect
+                            let html = `
                                             <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
                                                 <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
                                                     <p>${msg}</p>
                                                 </div>
                                             </div>`;
 
-                        let newElement = $(html).appendTo('#chat-stream-box');
+                            let newElement = $(html).appendTo('#chat-stream-box');
 
-                        setTimeout(() => {
-                            newElement.removeClass('opacity-0 translate-y-4');
-                        }, 50);
+                            // Trigger reflow and animate
+                            setTimeout(() => {
+                                newElement.removeClass('opacity-0 translate-y-4');
+                            }, 50);
 
-                        input.val('');
-                        scrollToBottom(true);
+                            input.val('');
+                            scrollToBottom(true);
+                        } else {
+            
+                            alert("Message failed: " + response.error);
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("Network error or session expired. Please refresh the page.");
                     },
                     complete: function () {
+                        // Restore state
                         input.prop('disabled', false);
                         if (window.innerWidth > 768) input.focus();
                         btn.prop('disabled', false).html(sendIcon);
                     }
                 });
             });
-        });
     </script>
 @endsection

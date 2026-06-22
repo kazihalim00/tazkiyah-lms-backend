@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -6,12 +7,10 @@ use App\Models\User;
 use App\Models\PartnerMessage;
 use App\Models\AccountabilityPartner;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator; 
 
 class ChatController extends Controller
 {
-    /**
-     * Display the chat dashboard with active partners and messages.
-     */
     public function index($partnerId = null)
     {
         $user = Auth::user();
@@ -30,14 +29,12 @@ class ChatController extends Controller
 
         $activePartners = User::whereIn('id', $partnerIds)->get();
 
-        // 2. Load conversation history if a specific partner is selected
         $messages = collect();
         $selectedPartner = null;
 
         if ($partnerId && in_array($partnerId, $partnerIds)) {
             $selectedPartner = User::findOrFail($partnerId);
 
-            // Querying strictly from the brand new partner_messages table
             $messages = PartnerMessage::where(function ($q) use ($user, $partnerId) {
                 $q->where('sender_id', $user->id)->where('receiver_id', $partnerId);
             })->orWhere(function ($q) use ($user, $partnerId) {
@@ -48,39 +45,43 @@ class ChatController extends Controller
             PartnerMessage::where('sender_id', $partnerId)->where('receiver_id', $user->id)->update(['is_read' => true]);
         }
 
-
         return view('chat.index', compact('activePartners', 'selectedPartner', 'messages'));
     }
 
-    /**
-     * Store and send a new message to an active partner.
-     */
     public function sendMessage(Request $request, $partnerId)
     {
-        $request->validate([
+       
+        $validator = Validator::make($request->all(), [
             'message' => 'required|string|max:2000',
         ]);
 
-        // Secure check to ensure they are actually connected partners before inserting
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'error' => $validator->errors()->first()]);
+        }
+
+        $userId = Auth::id();
+
+
         $isPartner = AccountabilityPartner::where('status', 'accepted')
-            ->where(function ($q) use ($partnerId) {
-                $q->where('user_id', Auth::id())->where('partner_id', $partnerId);
-            })->orWhere(function ($q) use ($partnerId) {
-                $q->where('user_id', $partnerId)->where('partner_id', Auth::id());
+            ->where(function ($query) use ($userId, $partnerId) {
+                $query->where(function ($q1) use ($userId, $partnerId) {
+                    $q1->where('user_id', $userId)->where('partner_id', $partnerId);
+                })->orWhere(function ($q2) use ($userId, $partnerId) {
+                    $q2->where('user_id', $partnerId)->where('partner_id', $userId);
+                });
             })->exists();
 
         if (!$isPartner) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized chat attempt.'], 403);
+            return response()->json(['success' => false, 'error' => 'Unauthorized chat attempt.']);
         }
 
-        // Saving directly into the new partner_messages table
-        PartnerMessage::create([
-            'sender_id' => Auth::id(),
+
+        $message = PartnerMessage::create([
+            'sender_id' => $userId,
             'receiver_id' => $partnerId,
             'message' => $request->message
         ]);
 
-        // AJAX এর জন্য JSON রেসপন্স পাঠাচ্ছি (আগের redirect রিমুভ করে দিয়েছি)
         return response()->json(['success' => true]);
     }
 }
