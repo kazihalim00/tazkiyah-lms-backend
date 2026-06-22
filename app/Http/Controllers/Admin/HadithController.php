@@ -12,7 +12,7 @@ class HadithController extends Controller
 {
     public function index()
     {
-        $hadiths = Hadith::with('category')->latest()->get();
+        $hadiths = Hadith::with('category')->orderBy('id', 'asc')->get();
         return view('admin.hadiths.index', compact('hadiths'));
     }
 
@@ -88,7 +88,7 @@ class HadithController extends Controller
         $hadith->update([
             'category_id' => $request->category_id,
             'sub_category_id' => $request->sub_category_id,
-            'hadith_number' => $request->hadith_number, 
+            'hadith_number' => $request->hadith_number,
             'arabic_text' => $request->arabic_text,
             'bangla_text' => $request->bangla_text,
             'english_text' => $request->english_text,
