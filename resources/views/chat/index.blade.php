@@ -171,9 +171,10 @@
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-
+            // CSRF Setup
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
             function scrollToBottom(animate = false) {
@@ -193,6 +194,29 @@
                 $('#message-input').focus();
             }
 
+            // ==========================================
+            // NEW: Auto-refresh Chat (Real-time Feel)
+            // ==========================================
+            setInterval(function () {
+                let chatBox = $('#chat-stream-box');
+                if (chatBox.length > 0) {
+                    // চেক করা হচ্ছে ইউজার স্ক্রল করে একদম নিচে আছে কি না
+                    let isAtBottom = (chatBox[0].scrollHeight - chatBox.scrollTop() <= chatBox.outerHeight() + 50);
+
+                    // ব্যাকগ্রাউন্ডে নীরবে শুধু চ্যাটবক্সের অংশটুকু রিলোড করা হচ্ছে
+                    chatBox.load(location.href + " #chat-stream-box > *", function () {
+                        // যদি ইউজার নিচে থাকে, তাহলে নতুন মেসেজ আসলে অটোমেটিক নিচে নামিয়ে দেবে
+                        if (isAtBottom) {
+                            scrollToBottom();
+                        }
+                    });
+                }
+            }, 3000); // ৩ সেকেন্ড পরপর চেক করবে (3000 milliseconds)
+
+
+            // ==========================================
+            // Send Message (AJAX)
+            // ==========================================
             $('#chat-form').on('submit', function (e) {
                 e.preventDefault();
 
@@ -201,12 +225,13 @@
                 let msg = input.val().trim();
                 let btn = $('#send-btn');
 
+                // বক্স ডিজেবল করার আগেই ডাটা সেভ করে নিচ্ছি (ভ্যালিডেশন এরর ফিক্স)
+                let formData = form.serialize();
+
                 let sendIcon = '<svg class="w-5 h-5 ml-0.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>';
                 let spinnerIcon = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-                if (msg === "") return;
 
-     
-                let formData = form.serialize();
+                if (msg === "") return;
 
                 input.prop('disabled', true);
                 btn.prop('disabled', true).html(spinnerIcon);
@@ -214,19 +239,19 @@
                 $.ajax({
                     url: form.attr('action'),
                     method: 'POST',
-                    data: formData, 
+                    data: formData, // সেভ করা ডাটা পাঠানো হচ্ছে
                     dataType: 'json',
                     success: function (response) {
                         if (response.success === true) {
-
                             $('#chat-stream-box').find('.opacity-60').remove();
 
+                            // মেসেজ সেন্ড হওয়ার সাথে সাথে নিজের স্ক্রিনে দেখানো
                             let html = `
-                                                <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
-                                                    <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
-                                                        <p>${msg}</p>
-                                                    </div>
-                                                </div>`;
+                                    <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
+                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
+                                            <p>${msg}</p>
+                                        </div>
+                                    </div>`;
 
                             let newElement = $(html).appendTo('#chat-stream-box');
 
@@ -241,10 +266,9 @@
                         }
                     },
                     error: function (xhr) {
-                        alert("Network error or session expired. Please refresh the page.");
+                        alert("Network error. Please try again.");
                     },
                     complete: function () {
-
                         input.prop('disabled', false);
                         if (window.innerWidth > 768) input.focus();
                         btn.prop('disabled', false).html(sendIcon);
