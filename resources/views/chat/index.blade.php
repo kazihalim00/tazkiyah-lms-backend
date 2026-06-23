@@ -35,13 +35,16 @@
                                     {{ substr($partner->name, 0, 1) }}
                                 </div>
                             @endif
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <h4 class="font-extrabold text-sm truncate {{ $isActive ? 'text-white' : 'text-gray-900' }}">
                                     {{ $partner->name }}
                                 </h4>
-                                <p
-                                    class="text-[10px] font-bold mt-0.5 uppercase tracking-wide {{ $isActive ? 'text-indigo-200' : 'text-gray-400' }}">
-                                    {{ $partner->level ?? 'Member' }}
+                                <p class="text-[12px] mt-0.5 truncate {{ $isActive ? 'text-indigo-200' : 'text-gray-500' }}">
+                                    @if($partner->latest_message)
+                                        {{ \Illuminate\Support\Str::limit($partner->latest_message, 30) }}
+                                    @else
+                                        <span class="italic text-[11px] opacity-70">Say salam to start...</span>
+                                    @endif
                                 </p>
                             </div>
                         </div>
@@ -247,11 +250,11 @@
 
                             // মেসেজ সেন্ড হওয়ার সাথে সাথে নিজের স্ক্রিনে দেখানো
                             let html = `
-                                    <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
-                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
-                                            <p>${msg}</p>
-                                        </div>
-                                    </div>`;
+                                        <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease;">
+                                            <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
+                                                <p>${msg}</p>
+                                            </div>
+                                        </div>`;
 
                             let newElement = $(html).appendTo('#chat-stream-box');
 

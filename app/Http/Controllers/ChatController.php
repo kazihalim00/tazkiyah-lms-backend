@@ -27,8 +27,24 @@ class ChatController extends Controller
             $partnerIds[] = ($conn->user_id == $user->id) ? $conn->partner_id : $conn->user_id;
         }
 
-        $activePartners = User::whereIn('id', $partnerIds)->get();
+        // Get partners and attach their latest message for WhatsApp-like sorting
+        $partners = User::whereIn('id', $partnerIds)->get();
 
+        $activePartners = $partners->map(function ($partner) use ($user) {
+            $latestMessage = \App\Models\PartnerMessage::where(function ($q) use ($user, $partner) {
+                $q->where('sender_id', $user->id)->where('receiver_id', $partner->id);
+            })->orWhere(function ($q) use ($user, $partner) {
+                $q->where('sender_id', $partner->id)->where('receiver_id', $user->id);
+            })->orderBy('created_at', 'desc')->first();
+
+            // Notun duti property add kora hocche
+            $partner->latest_message = $latestMessage ? $latestMessage->message : null;
+            $partner->latest_message_time = $latestMessage ? $latestMessage->created_at : null;
+
+            return $partner;
+        })->sortByDesc('latest_message_time')->values(); // Ekdom last message onujayi sort kora holo
+
+        // 2. Load conversation history if a specific partner is selected
         $messages = collect();
         $selectedPartner = null;
 
@@ -45,6 +61,8 @@ class ChatController extends Controller
             PartnerMessage::where('sender_id', $partnerId)->where('receiver_id', $user->id)->update(['is_read' => true]);
         }
 
+        // Note: Apnar view er nam jodi 'messages' hoy tahole 'messages' e rakhben, 
+        // ar 'chat.index' hole 'chat.index' rakhben.
         return view('chat.index', compact('activePartners', 'selectedPartner', 'messages'));
     }
 
