@@ -9,7 +9,12 @@ class PartnerMessage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['sender_id', 'receiver_id', 'message', 'is_read'];
+    protected $fillable = ['sender_id', 'receiver_id', 'message', 'is_read', 'reply_to_id', 'reaction'];
+
+    public function repliedMessage()
+    {
+        return $this->belongsTo(PartnerMessage::class, 'reply_to_id');
+    }
 
     public function sender()
     {
