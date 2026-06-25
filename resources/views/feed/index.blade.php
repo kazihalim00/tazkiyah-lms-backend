@@ -8,13 +8,18 @@
 
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
             <div class="flex items-start gap-4">
-                @if(auth()->user()->image)
-                    <img src="{{ auth()->user()->image_url }}" class="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-sm shrink-0" alt="My Profile">
-                @else
-                    <div class="h-11 w-11 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-black text-sm uppercase shadow-inner shrink-0">
-                        {{ substr(auth()->user()->name, 0, 1) }}
-                    </div>
-                @endif
+            @if($post->image)
+                <div class="mt-4 rounded-2xl overflow-hidden border border-gray-100">
+                    @if(preg_match('/^.*\.(mp4|mov|avi|webm)$/i', $post->image))
+                        <video controls class="w-full max-h-[500px] object-cover bg-black">
+                            <source src="{{ $post->image }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    @else
+                        <img src="{{ $post->image }}" class="w-full h-auto object-cover max-h-[500px]" alt="Post Media">
+                    @endif
+                </div>
+            @endif
 
                 <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="w-full space-y-4">
                    @csrf
@@ -42,7 +47,7 @@
         <div class="space-y-6">
             @forelse($posts as $post)
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
-                        
+
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 @if($post->user->image)
@@ -97,7 +102,7 @@
                         @if($post->image)
                             <img src="{{ $post->image_url }}" class="w-full rounded-2xl mt-2" alt="Post media">
                         @endif
-                        
+
                         <div class="flex items-center justify-between text-xs font-bold text-gray-400 px-1 pt-2 border-b border-gray-50 pb-2">
                             <div class="flex items-center gap-1">
                                 🤝 <span class="text-gray-600">{{ $post->likes->count() }}</span> Supports

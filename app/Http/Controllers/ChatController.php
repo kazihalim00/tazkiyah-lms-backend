@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\PartnerMessage;
 use App\Models\AccountabilityPartner;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator; 
+use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller
 {
@@ -68,7 +68,7 @@ class ChatController extends Controller
 
     public function sendMessage(Request $request, $partnerId)
     {
-       
+
         $validator = Validator::make($request->all(), [
             'message' => 'required|string|max:2000',
         ]);
@@ -102,4 +102,20 @@ class ChatController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function react(Request $request, $messageId)
+    {
+        $message = PartnerMessage::findOrFail($messageId);
+
+
+        if ($message->sender_id != Auth::id() && $message->receiver_id != Auth::id()) {
+            return response()->json(['success' => false], 403);
+        }
+
+        $message->reaction = $request->reaction;
+        $message->save();
+
+        return response()->json(['success' => true]);
+    }
+
 }

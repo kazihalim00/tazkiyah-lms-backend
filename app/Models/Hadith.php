@@ -12,12 +12,14 @@ class Hadith extends Model
         'sub_category_id',
         'bangla_text',
         'english_text',
+        'book_name',
         'reference',
         'grade',
         'hadith_number',
         'explanation',
         'source_url',
-        'points'
+        'points',
+        'narrator'
     ];
 
     public function category()

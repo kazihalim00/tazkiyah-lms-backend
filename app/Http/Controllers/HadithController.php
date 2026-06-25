@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HadithCategory;
 use App\Models\Hadith;
+use App\Models\HadithSubCategory;
 use App\Models\UserHadithProgress;
 use Illuminate\Http\Request;
 
@@ -17,18 +18,19 @@ class HadithController extends Controller
 
     public function category($slug)
     {
-        $category = \App\Models\HadithCategory::where('slug', $slug)->firstOrFail();
+        $category = HadithCategory::where('slug', $slug)->firstOrFail();
 
-        $subCategories = \App\Models\HadithSubCategory::where('category_id', $category->id)
+        $subCategories = HadithSubCategory::where('category_id', $category->id)
             ->withCount('hadiths')
             ->get();
 
-        // latest() এর বদলে orderBy('id', 'asc') দেওয়া হলো
-        $uncategorizedHadiths = \App\Models\Hadith::where('category_id', $category->id)
+        // সাব-ক্যাটাগরি ছাড়া যে হাদিসগুলো এই ক্যাটাগরিতে আছে, সেগুলোতে Paginate যোগ করা হলো (প্রতি পেজে ২০টি)
+        $uncategorizedHadiths = Hadith::where('category_id', $category->id)
             ->whereNull('sub_category_id')
-            ->orderBy('id', 'asc')->get();
+            ->orderBy('hadith_number', 'asc')
+            ->paginate(20);
 
-        return view('hadiths.show', compact('category', 'subCategories', 'uncategorizedHadiths'));
+        return view('hadiths.category', compact('category', 'subCategories', 'uncategorizedHadiths'));
     }
 
     public function chapter($id)

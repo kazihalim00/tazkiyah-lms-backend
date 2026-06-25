@@ -161,6 +161,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
     Route::get('/messages/{partner?}', [ChatController::class, 'index'])->name('chat.index');
     Route::post('/messages/{partner}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::post('/messages/{message}/react', [ChatController::class, 'react'])->name('chat.react');
 
     Route::get('/community', [AccountabilityPartnerController::class, 'index'])->name('community.index');
     Route::post('/partner/request/{id}', [AccountabilityPartnerController::class, 'sendRequest'])->name('partner.request');
@@ -231,8 +232,12 @@ Route::middleware(['auth'])->group(function () {
             return response()->json(['success' => false, 'reply' => 'Failed to connect to Noor AI. Error: ' . $e->getMessage()]);
         }
     })->name('web.chat');
+    // Quran Routes
+    Route::get('/quran', [App\Http\Controllers\QuranController::class, 'index'])->name('quran.index');
+    Route::get('/quran/surah/{id}', [App\Http\Controllers\QuranController::class, 'show'])->name('quran.show');
 
     // Hadith (User)
+    Route::post('/quran/tadabbur/{ayahId}', [App\Http\Controllers\QuranController::class, 'saveTadabbur'])->name('quran.tadabbur.save');
     Route::get('/hadiths/chapter/{id}', [App\Http\Controllers\HadithController::class, 'chapter'])->name('hadiths.chapter');
     Route::get('/hadiths', [App\Http\Controllers\HadithController::class, 'index'])->name('hadiths.index');
     Route::get('/hadiths/category/{slug}', [App\Http\Controllers\HadithController::class, 'category'])->name('hadiths.category');

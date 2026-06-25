@@ -25,26 +25,25 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'content' => 'required|string|max:1000',
+            // ভিডিও ফরম্যাটও অ্যালাউ করা হলো (20MB Max)
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
         ]);
 
-        $imageUrl = null;
+        $mediaUrl = null;
         if ($request->hasFile('image')) {
-            try {
-                $imageUrl = $this->cloudinary->uploadImage($request->file('image'));
-            } catch (\Exception $e) {
-                return back()->withErrors(['image' => 'Image upload failed: ' . $e->getMessage()]);
-            }
+            $mediaUrl = cloudinary()->upload($request->file('image')->getRealPath(), [
+                'resource_type' => 'auto'
+            ])->getSecurePath();
         }
 
-        Post::create([
+        \App\Models\Post::create([
             'user_id' => auth()->id(),
-            'content' => $request->input('content'),
-            'image' => $imageUrl,
+            'content' => $request->get('content'),
+            'image' => $mediaUrl,
         ]);
 
-        return redirect()->back()->with('success', 'Post created successfully!');
+        return redirect()->back()->with('success', 'Post uploaded successfully!');
     }
 
 

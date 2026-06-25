@@ -90,11 +90,14 @@
                 <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#f8f9fa] space-y-4 custom-scrollbar" id="chat-stream-box">
                     @forelse($messages as $msg)
                         @php $isMe = $msg->sender_id == auth()->id(); @endphp
-                        
+
                         <div class="relative group flex {{ $isMe ? 'justify-end' : 'justify-start' }} mb-2">
-                            
+
                             <div class="hidden group-hover:flex items-center gap-2 px-2 {{ $isMe ? 'order-1 mr-1' : 'order-2 ml-1' }}">
-                                <button type="button" class="text-gray-400 hover:text-amber-500 text-[16px] transition-transform hover:scale-110" title="React">😀</button>
+                                <button type="button" onclick="sendReaction({{ $msg->id }})"
+                                    class="text-gray-400 hover:text-amber-500 text-[16px] transition-transform hover:scale-110" title="React">
+                                    😀
+                                </button>
                                 <button type="button" onclick="setReply({{ $msg->id }}, '{{ addslashes($msg->message) }}')" class="text-gray-400 hover:text-indigo-600 transition" title="Reply">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
                                 </button>
@@ -104,7 +107,7 @@
                             </div>
 
                             <div class="{{ $isMe ? 'order-2 bg-indigo-600 text-white rounded-br-sm' : 'order-1 bg-white text-gray-800 border border-gray-100 rounded-bl-sm' }} max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed relative">
-                                
+
                                 @if($msg->reply_to_id && $msg->repliedMessage)
                                     <div class="mb-2 p-2 rounded-lg text-xs {{ $isMe ? 'bg-indigo-700/50 border-l-2 border-indigo-300' : 'bg-gray-50 border-l-2 border-indigo-500' }}">
                                         <p class="truncate opacity-80">{{ $msg->repliedMessage->message }}</p>
@@ -133,7 +136,7 @@
                 </div>
 
                 <div class="bg-white border-t border-gray-100 flex flex-col">
-                    
+
                     <div id="reply-preview-container" class="hidden px-4 py-2 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
                         <div class="flex-1 min-w-0 pr-4">
                             <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-wide mb-0.5">Replying to message</p>
@@ -148,7 +151,7 @@
                         <form id="chat-form" action="{{ route('chat.send', $selectedPartner->id) }}" method="POST" class="flex items-center gap-2 md:gap-3">
                             @csrf
                             <input type="hidden" name="reply_to_id" id="reply_to_id" value="">
-                            
+
                             <div class="relative flex-1">
                                 <input type="text" name="message" id="message-input" required autocomplete="off"
                                     placeholder="Type a message..."
@@ -276,7 +279,7 @@
 
                             // Build the new message bubble for immediate UI update
                             let replyHtml = replyText ? `<div class="mb-2 p-2 rounded-lg text-xs bg-indigo-700/50 border-l-2 border-indigo-300"><p class="truncate opacity-80">${replyText}</p></div>` : '';
-                            
+
                             let html = `
                                 <div class="flex justify-end opacity-0 transform translate-y-4" style="transition: all 0.3s ease; margin-bottom: 0.5rem;">
                                     <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-3.5 shadow-sm text-[15px] leading-relaxed bg-indigo-600 text-white rounded-br-sm">
@@ -310,5 +313,18 @@
                 });
             });
         }); 
+
+        function sendReaction(messageId) {
+                let emoji = prompt("Enter an emoji (e.g., ❤️, 👍, 😂, 😢):");
+                if (emoji) {
+                    $.ajax({
+                        url: `/messages/${messageId}/react`,
+                        method: 'POST',
+                        data: { reaction: emoji },
+                        success: function () {
+                        }
+                    });
+                }
+            }
     </script>
 @endsection

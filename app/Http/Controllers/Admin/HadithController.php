@@ -10,9 +10,22 @@ use Illuminate\Support\Str;
 
 class HadithController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $hadiths = Hadith::with('category')->orderBy('id', 'asc')->get();
+        $query = Hadith::with('category')->orderBy('hadith_number', 'asc');
+
+ 
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where('bangla_text', 'like', '%' . $search . '%')
+                ->orWhere('arabic_text', 'like', '%' . $search . '%')
+                ->orWhere('grade', 'like', '%' . $search . '%')
+                ->orWhere('hadith_number', 'like', '%' . $search . '%');
+        }
+
+
+        $hadiths = $query->paginate(50);
+
         return view('admin.hadiths.index', compact('hadiths'));
     }
 
