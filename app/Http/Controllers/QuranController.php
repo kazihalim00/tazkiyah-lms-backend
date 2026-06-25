@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Surah;
+use App\Models\QuranProgress; // Imported for Tadabbur
+use Illuminate\Support\Facades\DB; // Imported for Transactions
+use Illuminate\Support\Facades\Auth; // Imported for Auth
 
 class QuranController extends Controller
 {
-
     public function index()
     {
         $surahs = Surah::orderBy('surah_no', 'asc')->get();
@@ -16,10 +18,10 @@ class QuranController extends Controller
 
     public function show($id)
     {
+        // 'with('ayahs')' will load all ayahs including their tafsir if present in DB
         $surah = Surah::with('ayahs')->findOrFail($id);
         return view('quran.show', compact('surah'));
     }
-
 
     public function saveTadabbur(Request $request, $ayahId)
     {
@@ -31,7 +33,10 @@ class QuranController extends Controller
         DB::beginTransaction();
         try {
             $progress = QuranProgress::updateOrCreate(
-                ['user_id' => auth()->id(), 'ayah_id' => $ayahId],
+                [
+                    'user_id' => Auth::id(),
+                    'ayah_id' => $ayahId
+                ],
                 [
                     'tadabbur_note' => $request->tadabbur_note,
                     'reference' => $request->reference,
@@ -40,7 +45,8 @@ class QuranController extends Controller
                 ]
             );
 
-            $user = auth()->user();
+            // Updating user points
+            $user = Auth::user();
             $user->increment('points', 5);
 
             DB::commit();

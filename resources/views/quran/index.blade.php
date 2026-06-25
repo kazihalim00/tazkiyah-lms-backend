@@ -20,7 +20,7 @@
                             {{ $surah->surah_no }}
                         </div>
                         <div>
-                            <h3 class="font-bold text-gray-900">{{ $surah->name_bn }}</h3>
+                            <h3 class="font-bold text-gray-900">{{ $surah->name_bangla }}</h3>
                             <p class="text-xs text-gray-400 font-bold uppercase">{{ $surah->name_en }}</p>
                         </div>
                     </div>

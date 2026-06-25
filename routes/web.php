@@ -241,6 +241,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/hadiths/chapter/{id}', [App\Http\Controllers\HadithController::class, 'chapter'])->name('hadiths.chapter');
     Route::get('/hadiths', [App\Http\Controllers\HadithController::class, 'index'])->name('hadiths.index');
     Route::get('/hadiths/category/{slug}', [App\Http\Controllers\HadithController::class, 'category'])->name('hadiths.category');
+    Route::delete('/admin/hadiths/{id}', [App\Http\Controllers\Admin\HadithController::class, 'destroy'])->name('hadiths.destroy');
     Route::post('/hadiths/{id}/read', [App\Http\Controllers\HadithController::class, 'markAsRead'])->name('hadiths.read');
 });
 

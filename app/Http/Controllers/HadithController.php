@@ -12,8 +12,8 @@ class HadithController extends Controller
 {
     public function index()
     {
-        $categories = HadithCategory::withCount('hadiths')->get();
-        return view('hadiths.index', compact('categories'));
+        $hadiths = \App\Models\Hadith::with('category')->paginate(20);
+        return view('hadiths.index', compact('hadiths'));
     }
 
     public function category($slug)

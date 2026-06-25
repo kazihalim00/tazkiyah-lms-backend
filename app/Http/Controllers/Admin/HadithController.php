@@ -14,7 +14,7 @@ class HadithController extends Controller
     {
         $query = Hadith::with('category')->orderBy('hadith_number', 'asc');
 
- 
+
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where('bangla_text', 'like', '%' . $search . '%')
@@ -24,9 +24,9 @@ class HadithController extends Controller
         }
 
 
-        $hadiths = $query->paginate(50);
+        $hadiths = \App\Models\Hadith::with('category')->paginate(50);
 
-        return view('admin.hadiths.index', compact('hadiths'));
+        return view('hadiths.index', compact('hadiths'));
     }
 
     public function create()
@@ -113,5 +113,12 @@ class HadithController extends Controller
         ]);
 
         return redirect()->route('admin.hadiths.index')->with('success', 'Hadith updated successfully!');
+    }
+    public function destroy($id)
+    {
+        $hadith = \App\Models\Hadith::findOrFail($id);
+        $hadith->delete();
+
+        return redirect()->back()->with('success', 'Hadith deleted successfully!');
     }
 }
