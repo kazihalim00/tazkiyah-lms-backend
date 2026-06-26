@@ -12,9 +12,10 @@ class HadithController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Hadith::with('category')->orderBy('hadith_number', 'asc');
+        // 1. Start the query with relationships
+        $query = Hadith::with(['category', 'subCategory'])->orderBy('hadith_number', 'asc');
 
-
+        // 2. Apply search logic if search parameter exists
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where('bangla_text', 'like', '%' . $search . '%')
@@ -23,10 +24,11 @@ class HadithController extends Controller
                 ->orWhere('hadith_number', 'like', '%' . $search . '%');
         }
 
+        // 3. Paginate the $query object (Bug Fixed)
+        $hadiths = $query->paginate(50);
 
-        $hadiths = \App\Models\Hadith::with('category')->paginate(50);
-
-        return view('hadiths.index', compact('hadiths'));
+        // 4. Return the correct admin view (Bug Fixed)
+        return view('admin.hadiths.index', compact('hadiths'));
     }
 
     public function create()
@@ -68,7 +70,7 @@ class HadithController extends Controller
         Hadith::create([
             'category_id' => $categoryId,
             'sub_category_id' => $subCategoryId,
-            'hadith_number' => $request->hadith_number, // হাদিস নাম্বার যুক্ত করা হলো
+            'hadith_number' => $request->hadith_number,
             'arabic_text' => $request->arabic_text,
             'bangla_text' => $request->bangla_text,
             'english_text' => $request->english_text,
@@ -114,9 +116,10 @@ class HadithController extends Controller
 
         return redirect()->route('admin.hadiths.index')->with('success', 'Hadith updated successfully!');
     }
+
     public function destroy($id)
     {
-        $hadith = \App\Models\Hadith::findOrFail($id);
+        $hadith = Hadith::findOrFail($id);
         $hadith->delete();
 
         return redirect()->back()->with('success', 'Hadith deleted successfully!');

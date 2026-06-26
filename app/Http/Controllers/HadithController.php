@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HadithCategory;
 use App\Models\Hadith;
+use App\Models\HadithCategory;
 use App\Models\HadithSubCategory;
 use App\Models\UserHadithProgress;
 use Illuminate\Http\Request;
@@ -12,19 +12,15 @@ class HadithController extends Controller
 {
     public function index()
     {
-        $hadiths = \App\Models\Hadith::with('category')->paginate(20);
-        return view('hadiths.index', compact('hadiths'));
+        $categories = \App\Models\HadithCategory::withCount('hadiths')->get();
+        return view('hadiths.index', compact('categories'));
     }
 
+    // Missing Category Method Added
     public function category($slug)
     {
         $category = HadithCategory::where('slug', $slug)->firstOrFail();
-
-        $subCategories = HadithSubCategory::where('category_id', $category->id)
-            ->withCount('hadiths')
-            ->get();
-
-        // সাব-ক্যাটাগরি ছাড়া যে হাদিসগুলো এই ক্যাটাগরিতে আছে, সেগুলোতে Paginate যোগ করা হলো (প্রতি পেজে ২০টি)
+        $subCategories = HadithSubCategory::where('category_id', $category->id)->withCount('hadiths')->get();
         $uncategorizedHadiths = Hadith::where('category_id', $category->id)
             ->whereNull('sub_category_id')
             ->orderBy('hadith_number', 'asc')
@@ -33,36 +29,25 @@ class HadithController extends Controller
         return view('hadiths.category', compact('category', 'subCategories', 'uncategorizedHadiths'));
     }
 
+    // Missing Chapter Method Added
     public function chapter($id)
     {
-        $subCategory = \App\Models\HadithSubCategory::with('category')->findOrFail($id);
-
-
-        $hadiths = \App\Models\Hadith::where('sub_category_id', $id)
-            ->orderBy('id', 'asc')->get();
+        $subCategory = HadithSubCategory::with('category')->findOrFail($id);
+        $hadiths = Hadith::where('sub_category_id', $id)->orderBy('hadith_number', 'asc')->get();
 
         return view('hadiths.chapter', compact('subCategory', 'hadiths'));
     }
 
     public function markAsRead($id)
     {
-        $hadith = \App\Models\Hadith::findOrFail($id);
+        $hadith = Hadith::findOrFail($id);
         $user = auth()->user();
 
-
         if (!$hadith->isReadBy($user->id)) {
-            \App\Models\UserHadithProgress::create([
-                'user_id' => $user->id,
-                'hadith_id' => $hadith->id
-            ]);
-
-
+            UserHadithProgress::create(['user_id' => $user->id, 'hadith_id' => $hadith->id]);
             $user->increment('total_points', $hadith->points);
-
-            return back()->with('success', 'Alhamdulillah! ' . $hadith->points . ' points added to your profile for gaining knowledge.');
+            return back()->with('success', 'Alhamdulillah! You earned ' . $hadith->points . ' points.');
         }
-
-        return back()->with('info', 'You have already read this hadith.');
+        return back()->with('info', 'Already read.');
     }
-
 }

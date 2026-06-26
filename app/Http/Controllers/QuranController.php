@@ -56,4 +56,31 @@ class QuranController extends Controller
             return redirect()->back()->with('error', 'Sorry, something went wrong. Please try again.');
         }
     }
+
+    public function markAyahAsRead($id)
+    {
+        $user = auth()->user();
+        $sessionKey = 'read_ayah_' . $id . '_' . $user->id;
+
+        if (session()->has($sessionKey)) {
+            return back()->with('error', 'You have already claimed points for this Ayah.');
+        }
+
+        $user->increment('total_points', 5);
+        session()->put($sessionKey, true);
+
+        $tracker = \App\Models\IbadahTracker::where('user_id', $user->id)
+            ->whereDate('date', now()->toDateString())
+            ->first();
+
+        if (!$tracker) {
+            $tracker = new \App\Models\IbadahTracker();
+            $tracker->user_id = $user->id;
+            $tracker->date = now()->toDateString();
+            $tracker->save();
+        }
+        $tracker->increment('bonus_points', 5);
+
+        return back()->with('success', 'Ma sha Allah! You earned 5 points for reading this Ayah.');
+    }
 }

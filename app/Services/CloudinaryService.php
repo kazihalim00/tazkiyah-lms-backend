@@ -11,7 +11,6 @@ class CloudinaryService
 
     public function __construct()
     {
-        // তোমার .env ফাইলে থাকা CLOUDINARY_URL ব্যবহার করে কনফিগারেশন করা
         $this->cloudinary = new Cloudinary(
             Configuration::instance(env('CLOUDINARY_URL'))
         );
@@ -19,8 +18,9 @@ class CloudinaryService
 
     public function uploadImage($file)
     {
-
-        $result = $this->cloudinary->uploadApi()->upload($file->getRealPath());
+        $result = $this->cloudinary->uploadApi()->upload($file->getRealPath(), [
+            'resource_type' => 'auto'
+        ]);
 
         return $result['secure_url'];
     }

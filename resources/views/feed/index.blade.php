@@ -6,52 +6,68 @@
 @section('content')
     <div class="max-w-2xl mx-auto space-y-8">
 
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
-            <div class="flex items-start gap-4">
-            @if($post->image)
-                <div class="mt-4 rounded-2xl overflow-hidden border border-gray-100">
-                    @if(preg_match('/^.*\.(mp4|mov|avi|webm)$/i', $post->image))
-                        <video controls class="w-full max-h-[500px] object-cover bg-black">
-                            <source src="{{ $post->image }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    @else
-                        <img src="{{ $post->image }}" class="w-full h-auto object-cover max-h-[500px]" alt="Post Media">
-                    @endif
+    {{-- Create Post Section --}}
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+        <div class="flex items-start gap-4">
+            <img src="{{ auth()->user()->image ? (str_starts_with(auth()->user()->image, 'http') ? auth()->user()->image : asset('storage/' . auth()->user()->image)) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&color=4f46e5&background=e0e7ff' }}"
+                alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-full object-cover shrink-0">
+
+            <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="w-full space-y-4">
+                @csrf
+
+                {{-- Textarea: removed "required" attribute --}}
+                <textarea name="content" rows="3"
+                    class="w-full border-0 focus:ring-0 p-2 text-gray-700 text-base placeholder-gray-400 bg-gray-50 rounded-2xl focus:outline-none resize-none"
+                    placeholder="Share an Islamic reminder or thought, {{ explode(' ', auth()->user()->name)[0] }}..."></textarea>
+
+                {{-- Image/Video Preview Container --}}
+                <div id="media-preview-container" class="hidden relative mt-2">
+                    <button type="button" id="remove-media"
+                        class="absolute -top-3 -right-3 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-full p-1.5 transition shadow-sm border border-red-100 z-10">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+
+                    <img id="image-preview" src=""
+                        class="hidden w-full max-h-[300px] object-cover rounded-2xl border border-gray-100">
+                    <video id="video-preview" controls
+                        class="hidden w-full max-h-[300px] object-cover rounded-2xl border border-gray-100 bg-black"></video>
+                    <p id="file-name-preview" class="text-xs text-gray-400 mt-2 font-bold text-center truncate"></p>
                 </div>
-            @endif
 
-                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="w-full space-y-4">
-                   @csrf
-                    <textarea name="content" rows="3" required
-                        class="w-full border-0 focus:ring-0 p-2 text-gray-700 text-base placeholder-gray-400 bg-gray-50 rounded-2xl focus:outline-none"
-                        placeholder="Share an Islamic reminder or thought, {{ auth()->user()->name }}..."></textarea>
+                <div class="flex items-center justify-between pt-2 border-t border-gray-50">
+                    <label
+                        class="flex items-center gap-2 text-gray-500 hover:text-indigo-600 font-bold text-sm cursor-pointer transition bg-gray-50 hover:bg-indigo-50 px-3 py-1.5 rounded-xl">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        <span>Photo/Video</span>
+                        <input type="file" name="image" id="media-upload" class="hidden" accept="image/*,video/*">
+                    </label>
 
-                    <div class="flex items-center justify-between pt-2 border-t border-gray-50">
-                        <label class="flex items-center gap-2 text-gray-500 hover:text-indigo-600 font-bold text-sm cursor-pointer transition">
-                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            <span>Photo</span>
-                            <input type="file" name="image" class="hidden" accept="image/*">
-                        </label>
-
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm px-6 py-2.5 rounded-xl transition shadow-md">
-                            Publish Post
-                        </button>
-                    </div>
-                </form>
-            </div>
+                    <button type="submit" id="publish-btn"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm px-6 py-2.5 rounded-xl transition shadow-md disabled:opacity-50 flex items-center gap-2">
+                        Publish Post
+                    </button>
+                </div>
+            </form>
         </div>
+    </div>
 
+        {{-- Posts Feed Section --}}
         <div class="space-y-6">
             @forelse($posts as $post)
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
 
+                        {{-- Post Header --}}
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 @if($post->user->image)
-                                    <img src="{{ $post->user->image_url }}" class="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-sm" alt="Avatar">
+                                    <img src="{{ str_starts_with($post->user->image, 'http') ? $post->user->image : asset('storage/' . $post->user->image) }}" class="h-11 w-11 rounded-full object-cover border border-gray-100 shadow-sm" alt="Avatar">
                                 @else
                                     <div class="h-11 w-11 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-black text-sm uppercase shadow-inner">
                                         {{ substr($post->user->name, 0, 1) }}
@@ -95,14 +111,26 @@
                             </div>
                         </div>
 
+                        {{-- Post Content --}}
                         <div class="text-gray-800 text-base leading-relaxed whitespace-pre-line px-1">
                             {{ $post->content }}
                         </div>
 
+                        {{-- Post Media (Fixed the variable to check correctly inside the loop) --}}
                         @if($post->image)
-                            <img src="{{ $post->image_url }}" class="w-full rounded-2xl mt-2" alt="Post media">
+                            <div class="mt-4 rounded-2xl overflow-hidden border border-gray-100">
+                                @if(preg_match('/^.*\.(mp4|mov|avi|webm)$/i', $post->image))
+                                    <video controls class="w-full max-h-[500px] object-cover bg-black">
+                                        <source src="{{ str_starts_with($post->image, 'http') ? $post->image : asset('storage/' . $post->image) }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                @else
+                                    <img src="{{ str_starts_with($post->image, 'http') ? $post->image : asset('storage/' . $post->image) }}" class="w-full h-auto object-cover max-h-[500px]" alt="Post Media">
+                                @endif
+                            </div>
                         @endif
 
+                        {{-- Like & Comment Counts --}}
                         <div class="flex items-center justify-between text-xs font-bold text-gray-400 px-1 pt-2 border-b border-gray-50 pb-2">
                             <div class="flex items-center gap-1">
                                 🤝 <span class="text-gray-600">{{ $post->likes->count() }}</span> Supports
@@ -112,6 +140,7 @@
                             </div>
                         </div>
 
+                        {{-- Action Buttons --}}
                         <div class="flex items-center gap-4 pt-1">
                             @php $hasLiked = $post->isLikedBy(auth()->id()); @endphp
                             <form action="{{ route('posts.like', $post->id) }}" method="POST" class="w-1/2">
@@ -133,16 +162,17 @@
                             </div>
                         </div>
 
+                        {{-- Comments Section --}}
                         <div class="space-y-4 bg-gray-50/70 p-4 rounded-2xl mt-2">
 
                             @if($post->comments->whereNull('parent_id')->count() > 0)
-                                <div class="space-y-4 max-h-80 overflow-y-auto pr-1">
+                                <div class="space-y-4 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
                                     @foreach($post->comments->whereNull('parent_id') as $comment)
                                         <div class="space-y-2">
 
                                             <div class="flex items-start gap-2.5">
                                                 @if($comment->user->image)
-                                                    <img src="{{ $comment->user->image_url }}" class="h-7 w-7 rounded-full object-cover shadow-sm mt-0.5" alt="Commenter">
+                                                    <img src="{{ str_starts_with($comment->user->image, 'http') ? $comment->user->image : asset('storage/' . $comment->user->image) }}" class="h-7 w-7 rounded-full object-cover shadow-sm mt-0.5" alt="Commenter">
                                                 @else
                                                     <div class="h-7 w-7 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-black text-[10px] uppercase mt-0.5">
                                                         {{ substr($comment->user->name, 0, 1) }}
@@ -172,7 +202,7 @@
                                                     @foreach($comment->replies as $reply)
                                                         <div class="flex items-start gap-2">
                                                             @if($reply->user->image)
-                                                                <img src="{{ $reply->user->image_url }}" class="h-6 w-6 rounded-full object-cover shadow-sm mt-0.5" alt="Replier">
+                                                                <img src="{{ str_starts_with($reply->user->image, 'http') ? $reply->user->image : asset('storage/' . $reply->user->image) }}" class="h-6 w-6 rounded-full object-cover shadow-sm mt-0.5" alt="Replier">
                                                             @else
                                                                 <div class="h-6 w-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-black text-[9px] uppercase mt-0.5">
                                                                     {{ substr($reply->user->name, 0, 1) }}
@@ -222,6 +252,64 @@
                 </div>
             @endforelse
         </div>
-
     </div>
-@endsection
+
+    {{-- Adding custom scrollbar style --}}
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 10px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: #d1d5db; }
+    </style>
+    {{-- Javascript for Media Preview --}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const fileInput = document.getElementById('media-upload');
+            const previewContainer = document.getElementById('media-preview-container');
+            const imagePreview = document.getElementById('image-preview');
+            const videoPreview = document.getElementById('video-preview');
+            const removeBtn = document.getElementById('remove-media');
+            const fileNamePreview = document.getElementById('file-name-preview');
+            const publishBtn = document.getElementById('publish-btn');
+
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    // Client-side file size check (Max 20MB)
+                    if (file.size > 20 * 1024 * 1024) {
+                        alert('File is too large! Maximum size allowed is 20MB.');
+                        this.value = ''; 
+                        return;
+                    }
+
+                    const fileURL = URL.createObjectURL(file);
+                    previewContainer.classList.remove('hidden');
+                    fileNamePreview.textContent = file.name;
+
+                    if (file.type.startsWith('video/')) {
+                        imagePreview.classList.add('hidden');
+                        videoPreview.src = fileURL;
+                        videoPreview.classList.remove('hidden');
+                    } else {
+                        videoPreview.classList.add('hidden');
+                        imagePreview.src = fileURL;
+                        imagePreview.classList.remove('hidden');
+                    }
+                }
+            });
+
+            removeBtn.addEventListener('click', function() {
+                fileInput.value = '';
+                previewContainer.classList.add('hidden');
+                imagePreview.src = '';
+                videoPreview.src = '';
+            });
+
+            // Show loading state on publish
+            publishBtn.closest('form').addEventListener('submit', function() {
+                publishBtn.disabled = true;
+                publishBtn.innerHTML = '<svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Publishing...';
+            });
+        });
+    </script>
+@endsection 

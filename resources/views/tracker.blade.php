@@ -4,13 +4,13 @@
 
 @section('content')
     <div class="max-w-5xl mx-auto" x-data="{
-                                        fajr: '{{ $tracker->fajr ?? 'missed' }}',
-                                        dhuhr: '{{ $tracker->dhuhr ?? 'missed' }}',
-                                        asr: '{{ $tracker->asr ?? 'missed' }}',
-                                        maghrib: '{{ $tracker->maghrib ?? 'missed' }}',
-                                        isha: '{{ $tracker->isha ?? 'missed' }}',
-                                        khushu: {{ $tracker->khushu_level ?? 5 }}
-                                    }">
+                                                fajr: '{{ $tracker->fajr ?? 'missed' }}',
+                                                dhuhr: '{{ $tracker->dhuhr ?? 'missed' }}',
+                                                asr: '{{ $tracker->asr ?? 'missed' }}',
+                                                maghrib: '{{ $tracker->maghrib ?? 'missed' }}',
+                                                isha: '{{ $tracker->isha ?? 'missed' }}',
+                                                khushu: {{ $tracker->khushu_level ?? 5 }}
+                                            }">
 
         <div
             class="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -63,13 +63,13 @@
                         <div class="flex flex-wrap gap-2">
                             @foreach(['jamaah_mosque' => 'Mosque', 'jamaah_home' => 'Home', 'alone' => 'Alone', 'qada' => 'Qada', 'missed' => 'Missed'] as $val => $label)
                                 <button type="button" @click="{{ $m }} = '{{ $val }}'" :class="{
-                                                            'bg-emerald-600 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_mosque',
-                                                            'bg-teal-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_home',
-                                                            'bg-blue-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'alone',
-                                                            'bg-orange-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'qada',
-                                                            'bg-red-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'missed',
-                                                            'bg-gray-100 text-gray-600': {{ $m }} !== '{{ $val }}'
-                                                        }"
+                                                                            'bg-emerald-600 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_mosque',
+                                                                            'bg-teal-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'jamaah_home',
+                                                                            'bg-blue-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'alone',
+                                                                            'bg-orange-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'qada',
+                                                                            'bg-red-500 text-white shadow-md': {{ $m }} === '{{ $val }}' && '{{ $val }}' === 'missed',
+                                                                            'bg-gray-100 text-gray-600': {{ $m }} !== '{{ $val }}'
+                                                                        }"
                                     class="px-4 py-2 text-xs font-bold rounded-lg transition-all">{{ $label }}</button>
                             @endforeach
                         </div>
@@ -142,22 +142,26 @@
                         @endforeach
                     </div>
                 </div>
+                {{-- Focus & Islamic Book Section --}}
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
+                    <h3 class="text-lg font-black text-gray-800 tracking-tight">Focus & Islamic Book</h3>
 
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <h3 class="font-bold text-xl mb-8">Focus & Quran</h3>
-
-                    <div class="mb-10">
-                        <label class="block text-base font-bold text-gray-800 mb-5">
-                            Khushu Level: <span x-text="khushu" class="text-indigo-600 text-2xl"></span>/10
+                    {{-- Khushu Level Slider --}}
+                    <div class="space-y-2">
+                        <label class="flex justify-between text-sm font-bold text-gray-700">
+                            <span>Khushu Level</span>
+                            <span class="text-indigo-600 font-black"><span id="khushu-val">5</span>/10</span>
                         </label>
-                        <input type="range" name="khushu_level" x-model="khushu" min="1" max="10"
-                            class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        <input type="range" name="khushu_level" min="1" max="10" value="5"
+                            class="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                            oninput="document.getElementById('khushu-val').innerText = this.value">
                     </div>
 
-                    <div>
-                        <label class="block text-base font-bold text-gray-800 mb-4">Quran Recitation (Pages)</label>
-                        <input type="number" name="quran_pages" value="{{ $tracker->quran_pages ?? 0 }}"
-                            class="w-full p-5 bg-gray-50 rounded-xl border border-gray-200 text-lg font-semibold focus:border-indigo-500 outline-none">
+                    {{-- Islamic Book Pages Input --}}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-gray-700">Islamic Book Reading (Pages)</label>
+                        <input type="number" name="quran_pages" min="0" value="0"
+                            class="w-full bg-gray-50/70 px-4 py-3 rounded-xl text-sm text-gray-800 placeholder-gray-400 border border-gray-200 focus:outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50/50 transition font-bold">
                     </div>
                 </div>
             </div>
@@ -267,21 +271,21 @@
 
             adhkarData[type].forEach(item => {
                 let html = `
-                            <div class="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 space-y-4 shadow-inner">
-                                <h4 class="font-black text-indigo-600 text-[16px]">${item.name}</h4>
-                                <p class="text-2xl text-right font-bold text-gray-800 leading-relaxed font-arabic" dir="rtl" style="line-height: 1.8;">${item.arabic}</p>
+                                    <div class="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 space-y-4 shadow-inner">
+                                        <h4 class="font-black text-indigo-600 text-[16px]">${item.name}</h4>
+                                        <p class="text-2xl text-right font-bold text-gray-800 leading-relaxed font-arabic" dir="rtl" style="line-height: 1.8;">${item.arabic}</p>
 
-                                <div class="bg-white p-3 rounded-xl border border-gray-100 space-y-2">
-                                    <p class="text-xs font-bold text-gray-500"><span class="text-gray-400">Pronunciation:</span> ${item.pronunciation}</p>
-                                    <p class="text-sm text-gray-700 font-medium"><span class="font-bold text-gray-900">Eng:</span> ${item.meaning_en}</p>
-                                    <p class="text-sm text-gray-700 font-medium"><span class="font-bold text-gray-900">বাংলা:</span> ${item.meaning_bn}</p>
-                                </div>
+                                        <div class="bg-white p-3 rounded-xl border border-gray-100 space-y-2">
+                                            <p class="text-xs font-bold text-gray-500"><span class="text-gray-400">Pronunciation:</span> ${item.pronunciation}</p>
+                                            <p class="text-sm text-gray-700 font-medium"><span class="font-bold text-gray-900">Eng:</span> ${item.meaning_en}</p>
+                                            <p class="text-sm text-gray-700 font-medium"><span class="font-bold text-gray-900">বাংলা:</span> ${item.meaning_bn}</p>
+                                        </div>
 
-                                <div class="text-[11px] font-black text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100 inline-block mt-2">
-                                    ${item.reward}
-                                </div>
-                            </div>
-                        `;
+                                        <div class="text-[11px] font-black text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100 inline-block mt-2">
+                                            ${item.reward}
+                                        </div>
+                                    </div>
+                                `;
                 content.append(html);
             });
 
