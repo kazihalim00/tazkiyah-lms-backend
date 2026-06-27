@@ -34,7 +34,7 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\ModuleController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
 use App\Http\Controllers\Admin\HadithController as AdminHadithController;
-
+use App\Http\Controllers\DonationController;
 /*
 |--------------------------------------------------------------------------
 | Public & Authentication Routes
@@ -98,7 +98,8 @@ Route::post('/logout', function (Request $request) {
     return redirect('/login');
 })->name('logout');
 
-
+Route::get('/donate', [DonationController::class, 'index'])->name('donate.index');
+Route::post('/donate/pay', [DonationController::class, 'pay'])->name('donate.pay');
 /*
 |--------------------------------------------------------------------------
 | Authenticated User Routes (Protected by Auth Middleware)
