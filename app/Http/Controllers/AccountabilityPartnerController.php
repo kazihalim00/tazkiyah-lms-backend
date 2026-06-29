@@ -87,7 +87,7 @@ class AccountabilityPartnerController extends Controller
         $sender = Auth::user();
         $receiver = User::findOrFail($partnerId);
 
-        // Strict Security Check: ক্রস-জেন্ডার রিকোয়েস্ট ব্লক করা
+        // Strict Security Check
         if ($sender->gender !== $receiver->gender) {
             return back()->with('error', 'Cross-gender connection requests are strictly prohibited.');
         }

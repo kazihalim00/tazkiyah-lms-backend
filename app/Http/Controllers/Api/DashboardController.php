@@ -15,14 +15,8 @@ class DashboardController extends Controller
         $user = Auth::user();
         $points = $user->total_points;
 
-        // Gamification Logic (Badge Calculation)
-        $badge = 'Seeker';
-        if ($points >= 50)
-            $badge = 'Fajr Warrior';
-        if ($points >= 150)
-            $badge = 'Consistent Believer';
-        if ($points >= 300)
-            $badge = 'Tazkiyah Master';
+        // Fetch badge, icon, and tree stage directly from User model
+        $badgeData = $user->badge;
 
         // Calculate the date 7 days ago
         $sevenDaysAgo = Carbon::now()->subDays(7)->format('Y-m-d');
@@ -33,7 +27,7 @@ class DashboardController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
-        // Analytics: Calculate total Jamaah vs Missed for Fajr (as an example)
+        // Analytics: Calculate total Jamaah vs Missed for Fajr
         $fajrJamaah = $weeklyTrackers->where('fajr', 'Jamaah')->count();
         $fajrMissed = $weeklyTrackers->where('fajr', 'Missed')->count();
 
@@ -47,7 +41,9 @@ class DashboardController extends Controller
                 'user_summary' => [
                     'name' => $user->name,
                     'current_points' => $points,
-                    'current_badge' => $badge,
+                    'current_badge' => $badgeData['name'],
+                    'badge_icon' => $badgeData['icon'],
+                    'tree_stage' => $badgeData['tree_stage'], // Added tree stage indicator (1 to 8)
                 ],
                 'weekly_analytics' => [
                     'days_tracked_this_week' => $weeklyTrackers->count(),
@@ -55,7 +51,7 @@ class DashboardController extends Controller
                     'fajr_missed_count' => $fajrMissed,
                     'morning_adhkar_count' => $morningAdhkarCount,
                 ],
-                'recent_entries' => $weeklyTrackers // Raw data for drawing charts in Flutter
+                'recent_entries' => $weeklyTrackers
             ]
         ], 200);
     }

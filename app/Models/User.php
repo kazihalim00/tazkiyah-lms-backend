@@ -61,20 +61,76 @@ class User extends Authenticatable
             ->withPivot('status')
             ->withTimestamps();
     }
-    public function getLevelAttribute()
+    // Calculate badge and icon dynamically based on points and gender
+    // Calculate badge, icon, and tree growth stage dynamically
+    public function getBadgeAttribute()
     {
         $points = $this->total_points ?? 0;
+        $isFemale = strtolower($this->gender) === 'female';
 
-        if ($points >= 5000)
-            return 'Mumin';
-        if ($points >= 2500)
-            return 'Devoted';
-        if ($points >= 1000)
-            return 'Seeker';
-        if ($points >= 300)
-            return 'Consistent';
+        // Level 7: The True Believer (Tree Stage 8 - Fully grown glowing tree)
+        if ($points >= 250000) {
+            return [
+                'name' => $isFemale ? 'Muminah' : 'Mumin',
+                'icon' => '👑',
+                'tree_stage' => 8
+            ];
+        }
+        // Level 6: The Truthful (Tree Stage 7 - Tree with flowers/fruits)
+        elseif ($points >= 100000) {
+            return [
+                'name' => $isFemale ? 'Siddiqah' : 'Siddiq',
+                'icon' => '🌟',
+                'tree_stage' => 7
+            ];
+        }
+        // Level 5: The Doer of Excellence (Tree Stage 6 - Large beautiful tree)
+        elseif ($points >= 50000) {
+            return [
+                'name' => $isFemale ? 'Muhsinah' : 'Muhsin',
+                'icon' => '🕊️',
+                'tree_stage' => 6
+            ];
+        }
+        // Level 4: The God-fearing/Pious (Tree Stage 5 - Tree with dense leaves)
+        elseif ($points >= 20000) {
+            return [
+                'name' => $isFemale ? 'Muttaqiyah' : 'Muttaqi',
+                'icon' => '🛡️',
+                'tree_stage' => 5
+            ];
+        }
+        // Level 3: The Striver (Tree Stage 4 - Growing small tree)
+        elseif ($points >= 8000) {
+            return [
+                'name' => $isFemale ? 'Mujahidah' : 'Mujahid',
+                'icon' => '⚔️',
+                'tree_stage' => 4
+            ];
+        }
+        // Level 2: The Devoted Worshipper (Tree Stage 3 - Plant with multiple leaves)
+        elseif ($points >= 3000) {
+            return [
+                'name' => $isFemale ? 'Abidah' : 'Abid',
+                'icon' => '📿',
+                'tree_stage' => 3
+            ];
+        }
+        // Level 1: The Seeker of Knowledge (Tree Stage 2 - Small sprout)
+        elseif ($points >= 1000) {
+            return [
+                'name' => $isFemale ? 'Talibah' : 'Talib',
+                'icon' => '📖',
+                'tree_stage' => 2
+            ];
+        }
 
-        return 'Beginner';
+        // Level 0: Default beginner (Tree Stage 1 - Just a seed/soil)
+        return [
+            'name' => $isFemale ? 'Mubtadiyah' : 'Mubtadi',
+            'icon' => '🌱',
+            'tree_stage' => 1
+        ];
     }
     public function myPartners()
     {

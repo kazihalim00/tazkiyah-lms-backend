@@ -16,6 +16,7 @@ class IbadahTrackerController extends Controller
 
         return view('tracker', compact('tracker'));
     }
+
     public function saveDailyTracker(Request $request)
     {
         // Validate the incoming request data
@@ -36,22 +37,22 @@ class IbadahTrackerController extends Controller
 
         // Use updateOrCreate to either update today's existing tracker or create a new one
         $tracker = IbadahTracker::updateOrCreate(
-            // Condition to check: Does a tracker exist for this user on this specific date?
             ['user_id' => $user->id, 'date' => $validatedData['date']],
-
-            // Data to update or insert
             $validatedData
         );
+
         // Give 10 points if the tracker is created for the very first time today
         if ($tracker->wasRecentlyCreated) {
             $user->increment('total_points', 10);
         }
+
         return response()->json([
             'success' => true,
             'message' => 'Daily Ibadah tracker saved successfully',
             'data' => $tracker
         ], 200);
     }
+
     public function getHistory()
     {
         // Get the currently authenticated user
@@ -68,6 +69,7 @@ class IbadahTrackerController extends Controller
             'data' => $history
         ], 200);
     }
+
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -95,29 +97,34 @@ class IbadahTrackerController extends Controller
         $tracker->quran_pages = $request->input('quran_pages', 0);
         $tracker->save();
 
-        // Recalculate lifetime total points for the user to keep it strictly synced
+        // Recalculate lifetime total points for the user
         $allTrackers = \App\Models\IbadahTracker::where('user_id', $user->id)->get();
         $totalPoints = 0;
 
         foreach ($allTrackers as $t) {
-            // 1. Obligatory Prayers Points
+            // 1. Obligatory Prayers Points (Fixed string mismatch issue)
             $prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
             foreach ($prayers as $prayer) {
-                if ($t->$prayer === 'jamaah_mosque')
+                // Convert to lowercase to avoid case-sensitive bugs (e.g. 'Jamaah' vs 'jamaah')
+                $status = strtolower($t->$prayer);
+
+                if (in_array($status, ['jamaah', 'jamaah_mosque'])) {
                     $totalPoints += 10;
-                elseif ($t->$prayer === 'jamaah_home')
+                } elseif ($status === 'jamaah_home') {
                     $totalPoints += 7;
-                elseif ($t->$prayer === 'alone')
+                } elseif (in_array($status, ['individual', 'alone'])) {
                     $totalPoints += 5;
-                elseif ($t->$prayer === 'qada')
+                } elseif ($status === 'qada') {
                     $totalPoints += 2;
+                }
             }
 
             // 2. Sunnah & Good Deeds Points
             $deeds = ['morning_adhkar', 'evening_adhkar', 'tahajjud', 'witr', 'sadaqah', 'duwa'];
             foreach ($deeds as $deed) {
-                if ($t->$deed == 1)
+                if ($t->$deed == 1) {
                     $totalPoints += 5;
+                }
             }
 
             // 3. Quran Recitation Points (2 points per page)
