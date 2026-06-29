@@ -42,8 +42,13 @@
                     @endif
                 </div>
                 <h3 class="text-lg font-black text-gray-900">{{ $rankUser->name }}</h3>
-                <p class="text-xs text-indigo-600 font-bold bg-indigo-50 px-2.5 py-1 rounded-md mt-1">{{ $rankUser->level }}</p>
-                <p class="text-base font-black text-gray-700 mt-2">{{ $rankUser->total_points }} pts</p>
+                
+                <div class="inline-flex items-center gap-2 mt-2 bg-indigo-50/80 px-3 py-1.5 rounded-xl border border-indigo-100">
+                    <span class="text-lg">{{ $rankUser->badge['icon'] }}</span>
+                    <span class="text-[11px] font-black text-indigo-700 uppercase tracking-wider">{{ $rankUser->badge['name'] }}</span>
+                </div>
+                
+                <p class="text-base font-black text-gray-700 mt-3">{{ $rankUser->total_points }} pts</p>
 
                 <div class="w-full mt-4">
                     @if($isSelf)
@@ -74,8 +79,7 @@
                     $currentRank = $loop->iteration + 3; 
                 @endphp
                 <div class="flex flex-col md:flex-row md:items-center justify-between p-5 md:px-8 transition-all {{ $isCurrentUser ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white hover:bg-indigo-50/30' }}">
-                    <div class="flex items-center gap-6 w-full md:w-1/2">
-                        
+                    <div class="flex items-center gap-6 w-full md:w-1/3">
                         <div class="h-8 w-8 rounded-full flex items-center justify-center text-sm font-black {{ $isCurrentUser ? 'bg-white text-indigo-600' : 'bg-gray-100 text-gray-500' }}">
                             {{ $currentRank }}
                         </div>
@@ -89,8 +93,15 @@
                         @endif
                         <h4 class="font-extrabold text-base">{{ $boardUser->name }}</h4>
                     </div>
-                    <div class="md:w-1/4 text-center font-bold text-xs uppercase tracking-wider">{{ $boardUser->level }}</div>
-                    <div class="md:w-1/4 flex items-center justify-end gap-6">
+                    
+                    <div class="md:w-1/3 text-center flex items-center justify-center gap-2 mt-3 md:mt-0">
+                        <span class="text-lg">{{ $boardUser->badge['icon'] }}</span>
+                        <span class="font-bold text-[11px] uppercase tracking-wider {{ $isCurrentUser ? 'text-indigo-100' : 'text-gray-500' }}">
+                            {{ $boardUser->badge['name'] }}
+                        </span>
+                    </div>
+
+                    <div class="md:w-1/3 flex items-center justify-end gap-6 mt-3 md:mt-0">
                         <span class="font-black text-lg">{{ $boardUser->total_points }} pts</span>
                         @if(!$isCurrentUser)
                             @if(auth()->user()->gender !== $boardUser->gender)
