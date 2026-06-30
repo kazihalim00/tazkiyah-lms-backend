@@ -231,23 +231,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/quiz/{id}', [QuizController::class, 'show'])->name('quizzes.show');
     Route::post('/quiz/{id}/submit', [QuizController::class, 'submit'])->name('quizzes.submit');
 
-    // Noor AI
+    // Noor AI UI Route
     Route::get('/noor-ai', function () {
         return view('noor-ai');
     })->name('noor.index');
-    Route::post('/web-chat', function (Request $request) {
-        $userMessage = $request->input('message');
-        try {
-            $response = Http::timeout(60)->post('http://127.0.0.1:5000/chat', ['message' => $userMessage]);
-            if ($response->successful()) {
-                $data = $response->json();
-                return response()->json(['success' => true, 'reply' => $data['reply'] ?? $data['response'] ?? 'I could not process the response properly.']);
-            }
-            return response()->json(['success' => false, 'reply' => 'Server error']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'reply' => 'Failed to connect']);
-        }
-    })->name('web.chat');
+
+    Route::post('/web-chat', [\App\Http\Controllers\Api\NoorAiController::class, 'sendMessage'])->name('web.chat');
 
     // Quran Routes
     Route::get('/quran', [QuranController::class, 'index'])->name('quran.index');

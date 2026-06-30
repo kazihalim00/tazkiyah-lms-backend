@@ -103,7 +103,7 @@
                 this.style.height = (this.scrollHeight < 120 ? this.scrollHeight : 120) + 'px';
             });
 
-            // Submit on Enter (Prevent default to avoid new line, allow Shift+Enter for new line)
+            // Submit on Enter
             userInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -117,21 +117,21 @@
                 const message = userInput.value.trim();
                 if (!message) return;
 
-                // 1. Append User Message to UI
+                // 1. Append User Message
                 appendMessage('user', message);
 
                 // Reset Input
                 userInput.value = '';
                 userInput.style.height = 'auto';
 
-                // Disable input and show loading
+                // Disable input & show loading
                 userInput.disabled = true;
                 sendBtn.disabled = true;
                 typingIndicator.classList.remove('hidden');
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
                 try {
-                    // 2. Send POST request to Laravel Backend
+                    // 🟢 FIXED: URL updated to /web-chat to match web.php
                     const response = await fetch('{{ url("/web-chat") }}', {
                         method: 'POST',
                         headers: {
@@ -142,21 +142,21 @@
                         body: JSON.stringify({ message: message })
                     });
 
-                    const data = await response.json();
+                    const responseData = await response.json();
 
-                    // 3. Append AI Response
                     typingIndicator.classList.add('hidden');
-                    if (data.success) {
-                        appendMessage('ai', data.reply);
+
+                    if (responseData.success && responseData.data && responseData.data.ai_response) {
+                        appendMessage('ai', responseData.data.ai_response);
                     } else {
-                        appendMessage('ai', 'I am currently having trouble connecting to my knowledge base. Please try again later.');
+                        appendMessage('ai', '⚠️ Connection failed. Please check your backend routes and .env file.');
                     }
 
                 } catch (error) {
                     typingIndicator.classList.add('hidden');
-                    appendMessage('ai', 'Oops! The connection to Noor AI failed. Make sure your Python Flask server is running.');
+                    appendMessage('ai', 'Oops! Could not reach the server. Please check your network connection.');
+                    console.error('Fetch Error:', error);
                 } finally {
-                    // Re-enable input
                     userInput.disabled = false;
                     sendBtn.disabled = false;
                     userInput.focus();
@@ -166,37 +166,40 @@
 
             function appendMessage(sender, text) {
                 const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                let messageHTML = '';
 
-                // Convert newlines to <br> for HTML rendering
-                const formattedText = text.replace(/\n/g, '<br>');
+                // Markdown basics (Bold, Italic, Newlines)
+                let formattedText = text.replace(/\n/g, '<br>');
+                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+                let messageHTML = '';
 
                 if (sender === 'user') {
                     messageHTML = `
-                        <div class="flex items-start justify-end gap-4 animate-[fadeIn_0.3s_ease-out]">
-                            <div class="bg-indigo-600 p-4 rounded-2xl rounded-tr-none shadow-md text-white max-w-[80%] md:max-w-[70%]">
-                                <p class="leading-relaxed text-sm md:text-base">${formattedText}</p>
-                                <span class="text-[10px] text-indigo-200 mt-2 block uppercase font-semibold text-right">${timeString}</span>
-                            </div>
-                            <div class="h-10 w-10 shrink-0 bg-gray-200 rounded-full overflow-hidden shadow-sm border-2 border-white">
-                                @if(auth()->user()->image)
-                                    <img src="{{ asset('storage/' . auth()->user()->image) }}" class="h-full w-full object-cover">
-                                @else
-                                    <div class="h-full w-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold uppercase">{{ substr(auth()->user()->name, 0, 1) }}</div>
-                                @endif
-                            </div>
-                        </div>`;
+                                        <div class="flex items-start justify-end gap-4 animate-[fadeIn_0.3s_ease-out]">
+                                            <div class="bg-indigo-600 p-4 rounded-2xl rounded-tr-none shadow-md text-white max-w-[80%] md:max-w-[70%]">
+                                                <p class="leading-relaxed text-sm md:text-base">${formattedText}</p>
+                                                <span class="text-[10px] text-indigo-200 mt-2 block uppercase font-semibold text-right">${timeString}</span>
+                                            </div>
+                                            <div class="h-10 w-10 shrink-0 bg-gray-200 rounded-full overflow-hidden shadow-sm border-2 border-white">
+                                                @if(auth()->check() && auth()->user()->image)
+                                                    <img src="{{ auth()->user()->image_url }}" class="h-full w-full object-cover">
+                                                @else
+                                                    <div class="h-full w-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold uppercase">{{ auth()->check() ? substr(auth()->user()->name, 0, 1) : 'U' }}</div>
+                                                @endif
+                                            </div>
+                                        </div>`;
                 } else {
                     messageHTML = `
-                        <div class="flex items-start gap-4 animate-[fadeIn_0.3s_ease-out]">
-                            <div class="h-10 w-10 shrink-0 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
-                                N
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 max-w-[80%] md:max-w-[70%]">
-                                <p class="text-gray-700 leading-relaxed text-sm md:text-base">${formattedText}</p>
-                                <span class="text-[10px] text-gray-400 mt-2 block uppercase font-semibold">${timeString}</span>
-                            </div>
-                        </div>`;
+                                        <div class="flex items-start gap-4 animate-[fadeIn_0.3s_ease-out]">
+                                            <div class="h-10 w-10 shrink-0 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                                                N
+                                            </div>
+                                            <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 max-w-[80%] md:max-w-[70%]">
+                                                <p class="text-gray-700 leading-relaxed text-sm md:text-base">${formattedText}</p>
+                                                <span class="text-[10px] text-gray-400 mt-2 block uppercase font-semibold">${timeString}</span>
+                                            </div>
+                                        </div>`;
                 }
 
                 chatContainer.insertAdjacentHTML('beforeend', messageHTML);
@@ -217,7 +220,6 @@
             }
         }
 
-        /* Custom Scrollbar for Chat */
         #chat-container::-webkit-scrollbar {
             width: 6px;
         }
