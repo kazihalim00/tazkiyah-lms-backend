@@ -48,8 +48,7 @@
                     class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 max-w-[80%] md:max-w-[70%]">
                     <p class="text-gray-700 leading-relaxed">
                         Assalamu Alaikum, {{ auth()->user()->name }}! 👋<br><br>
-                        I am Noor AI, your spiritual mentor. Whether you have a question about Fiqh, need motivation, or
-                        just want to share your thoughts, I am here for you. How can I assist your Tazkiyah journey today?
+                        I am Noor AI, your spiritual mentor. How can I assist your Tazkiyah journey today?
                     </p>
                     <span class="text-[10px] text-gray-400 mt-2 block uppercase font-semibold">Just Now</span>
                 </div>
@@ -72,8 +71,7 @@
             <form id="chat-form" class="relative flex items-end gap-2">
                 <textarea id="user-input" rows="1"
                     class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-2xl focus:ring-indigo-500 focus:border-indigo-500 block p-4 pr-14 resize-none shadow-inner transition"
-                    placeholder="Type your message or question here... (Press Shift+Enter for new line)"
-                    required></textarea>
+                    placeholder="Type your message..." required></textarea>
 
                 <button type="submit" id="send-btn"
                     class="absolute right-2 bottom-2 h-10 w-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -97,6 +95,36 @@
             const sendBtn = document.getElementById('send-btn');
             const csrfToken = '{{ csrf_token() }}';
 
+            // Function to load chat history from the database
+            async function loadChatHistory() {
+                try {
+                    const response = await fetch('{{ route("web.chat.history") }}', {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    const result = await response.json();
+                    if (result.success && result.data.length > 0) {
+                        // Clear the chat container to avoid duplication
+                        chatContainer.innerHTML = '';
+
+                        // Append each message from history
+                        result.data.forEach(chat => {
+                            appendMessage('user', chat.user_message);
+                            if (chat.ai_response) {
+                                appendMessage('ai', chat.ai_response);
+                            }
+                        });
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }
+                } catch (error) {
+                    console.error('Error loading chat history:', error);
+                }
+            }
+
+            // Load history on page load
+            loadChatHistory();
+
             // Auto-resize textarea
             userInput.addEventListener('input', function () {
                 this.style.height = 'auto';
@@ -111,27 +139,23 @@
                 }
             });
 
+            // Handle chat form submission
             chatForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 const message = userInput.value.trim();
                 if (!message) return;
 
-                // 1. Append User Message
                 appendMessage('user', message);
-
-                // Reset Input
                 userInput.value = '';
                 userInput.style.height = 'auto';
 
-                // Disable input & show loading
                 userInput.disabled = true;
                 sendBtn.disabled = true;
                 typingIndicator.classList.remove('hidden');
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
                 try {
-                    // 🟢 FIXED: URL updated to /web-chat to match web.php
                     const response = await fetch('{{ url("/web-chat") }}', {
                         method: 'POST',
                         headers: {
@@ -143,7 +167,6 @@
                     });
 
                     const responseData = await response.json();
-
                     typingIndicator.classList.add('hidden');
 
                     if (responseData.success && responseData.data && responseData.data.ai_response) {
@@ -154,7 +177,7 @@
 
                 } catch (error) {
                     typingIndicator.classList.add('hidden');
-                    appendMessage('ai', 'Oops! Could not reach the server. Please check your network connection.');
+                    appendMessage('ai', 'Oops! Could not reach the server.');
                     console.error('Fetch Error:', error);
                 } finally {
                     userInput.disabled = false;
@@ -164,10 +187,9 @@
                 }
             });
 
+            // Function to append messages to the UI
             function appendMessage(sender, text) {
                 const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                // Markdown basics (Bold, Italic, Newlines)
                 let formattedText = text.replace(/\n/g, '<br>');
                 formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
@@ -176,61 +198,25 @@
 
                 if (sender === 'user') {
                     messageHTML = `
-                                        <div class="flex items-start justify-end gap-4 animate-[fadeIn_0.3s_ease-out]">
-                                            <div class="bg-indigo-600 p-4 rounded-2xl rounded-tr-none shadow-md text-white max-w-[80%] md:max-w-[70%]">
-                                                <p class="leading-relaxed text-sm md:text-base">${formattedText}</p>
-                                                <span class="text-[10px] text-indigo-200 mt-2 block uppercase font-semibold text-right">${timeString}</span>
-                                            </div>
-                                            <div class="h-10 w-10 shrink-0 bg-gray-200 rounded-full overflow-hidden shadow-sm border-2 border-white">
-                                                @if(auth()->check() && auth()->user()->image)
-                                                    <img src="{{ auth()->user()->image_url }}" class="h-full w-full object-cover">
-                                                @else
-                                                    <div class="h-full w-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold uppercase">{{ auth()->check() ? substr(auth()->user()->name, 0, 1) : 'U' }}</div>
-                                                @endif
-                                            </div>
-                                        </div>`;
+                                <div class="flex items-start justify-end gap-4 animate-[fadeIn_0.3s_ease-out]">
+                                    <div class="bg-indigo-600 p-4 rounded-2xl rounded-tr-none shadow-md text-white max-w-[80%] md:max-w-[70%]">
+                                        <p class="leading-relaxed text-sm md:text-base">${formattedText}</p>
+                                    </div>
+                                    <div class="h-10 w-10 shrink-0 bg-gray-200 rounded-full flex items-center justify-center font-bold">
+                                        {{ auth()->check() ? substr(auth()->user()->name, 0, 1) : 'U' }}
+                                    </div>
+                                </div>`;
                 } else {
                     messageHTML = `
-                                        <div class="flex items-start gap-4 animate-[fadeIn_0.3s_ease-out]">
-                                            <div class="h-10 w-10 shrink-0 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
-                                                N
-                                            </div>
-                                            <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 max-w-[80%] md:max-w-[70%]">
-                                                <p class="text-gray-700 leading-relaxed text-sm md:text-base">${formattedText}</p>
-                                                <span class="text-[10px] text-gray-400 mt-2 block uppercase font-semibold">${timeString}</span>
-                                            </div>
-                                        </div>`;
+                                <div class="flex items-start gap-4 animate-[fadeIn_0.3s_ease-out]">
+                                    <div class="h-10 w-10 shrink-0 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">N</div>
+                                    <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 max-w-[80%] md:max-w-[70%]">
+                                        <p class="text-gray-700 leading-relaxed text-sm md:text-base">${formattedText}</p>
+                                    </div>
+                                </div>`;
                 }
-
                 chatContainer.insertAdjacentHTML('beforeend', messageHTML);
             }
         });
     </script>
-
-    <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        #chat-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        #chat-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        #chat-container::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 20px;
-        }
-    </style>
 @endpush

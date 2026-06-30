@@ -237,7 +237,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('noor.index');
 
     Route::post('/web-chat', [\App\Http\Controllers\Api\NoorAiController::class, 'sendMessage'])->name('web.chat');
-
+    Route::get('/web-chat/history', [\App\Http\Controllers\Api\NoorAiController::class, 'getChatHistory'])->name('web.chat.history');
     // Quran Routes
     Route::get('/quran', [QuranController::class, 'index'])->name('quran.index');
     Route::get('/quran/surah/{id}', [QuranController::class, 'show'])->name('quran.show');

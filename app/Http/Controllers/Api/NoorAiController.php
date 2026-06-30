@@ -124,15 +124,18 @@ class NoorAiController extends Controller
             ], 200);
         }
     }
-
     public function getChatHistory()
     {
-        $user = Auth::user();
-        $history = ChatLog::where('user_id', $user->id)->orderBy('created_at', 'asc')->get();
+        $user = auth()->user();
+        $history = ChatLog::where('user_id', $user->id)
+            ->orderBy('created_at', 'asc')
+            ->take(50)
+            ->get();
 
         return response()->json([
             'success' => true,
             'data' => $history
         ], 200);
     }
+
 }
