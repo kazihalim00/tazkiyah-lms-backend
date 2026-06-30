@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\IbadahTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class IbadahTrackerController extends Controller
 {
     public function index()
     {
-        $today = \Carbon\Carbon::now()->format('Y-m-d');
+        // 🟢 FIXED: Force Bangladesh Timezone (Asia/Dhaka)
+        $today = Carbon::now('Asia/Dhaka')->format('Y-m-d');
+
+        // Fetch today's tracker so the form can load previously saved data
         $tracker = IbadahTracker::where('user_id', auth()->id())->where('date', $today)->first();
 
         return view('tracker', compact('tracker'));
@@ -19,7 +23,6 @@ class IbadahTrackerController extends Controller
 
     public function saveDailyTracker(Request $request)
     {
-        // Validate the incoming request data
         $validatedData = $request->validate([
             'date' => 'required|date',
             'fajr' => 'in:Jamaah,Individual,Missed',
@@ -32,16 +35,13 @@ class IbadahTrackerController extends Controller
             'quran_recitation' => 'boolean',
         ]);
 
-        // Find the currently authenticated user
         $user = Auth::user();
 
-        // Use updateOrCreate to either update today's existing tracker or create a new one
         $tracker = IbadahTracker::updateOrCreate(
             ['user_id' => $user->id, 'date' => $validatedData['date']],
             $validatedData
         );
 
-        // Give 10 points if the tracker is created for the very first time today
         if ($tracker->wasRecentlyCreated) {
             $user->increment('total_points', 10);
         }
@@ -55,10 +55,8 @@ class IbadahTrackerController extends Controller
 
     public function getHistory()
     {
-        // Get the currently authenticated user
         $user = Auth::user();
 
-        // Fetch the user's tracker history, ordering by date (newest first)
         $history = IbadahTracker::where('user_id', $user->id)
             ->orderBy('date', 'desc')
             ->get();
@@ -73,15 +71,18 @@ class IbadahTrackerController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        $date = $request->input('date', \Carbon\Carbon::now()->format('Y-m-d'));
 
-        // Find existing tracker or create a new instance
-        $tracker = \App\Models\IbadahTracker::firstOrNew([
+        // 🟢 FIXED: Force Bangladesh Timezone (Asia/Dhaka)
+        $date = $request->input('date', Carbon::now('Asia/Dhaka')->format('Y-m-d'));
+
+        // firstOrNew ensures only ONE record exists per day. 
+        // If a user submits multiple times, it just updates today's record.
+        $tracker = IbadahTracker::firstOrNew([
             'user_id' => $user->id,
             'date' => $date
         ]);
 
-        // Assign request data to tracker fields
+        // Assign request data
         $tracker->fajr = $request->fajr;
         $tracker->dhuhr = $request->dhuhr;
         $tracker->asr = $request->asr;
@@ -97,17 +98,14 @@ class IbadahTrackerController extends Controller
         $tracker->quran_pages = $request->input('quran_pages', 0);
         $tracker->save();
 
-        // Recalculate lifetime total points for the user
-        $allTrackers = \App\Models\IbadahTracker::where('user_id', $user->id)->get();
+        // Recalculate lifetime total points dynamically
+        $allTrackers = IbadahTracker::where('user_id', $user->id)->get();
         $totalPoints = 0;
 
         foreach ($allTrackers as $t) {
-            // 1. Obligatory Prayers Points (Fixed string mismatch issue)
             $prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
             foreach ($prayers as $prayer) {
-                // Convert to lowercase to avoid case-sensitive bugs (e.g. 'Jamaah' vs 'jamaah')
                 $status = strtolower($t->$prayer);
-
                 if (in_array($status, ['jamaah', 'jamaah_mosque'])) {
                     $totalPoints += 10;
                 } elseif ($status === 'jamaah_home') {
@@ -119,7 +117,6 @@ class IbadahTrackerController extends Controller
                 }
             }
 
-            // 2. Sunnah & Good Deeds Points
             $deeds = ['morning_adhkar', 'evening_adhkar', 'tahajjud', 'witr', 'sadaqah', 'duwa'];
             foreach ($deeds as $deed) {
                 if ($t->$deed == 1) {
@@ -127,21 +124,17 @@ class IbadahTrackerController extends Controller
                 }
             }
 
-            // 3. Quran Recitation Points (2 points per page)
             if ($t->quran_pages > 0) {
                 $totalPoints += ($t->quran_pages * 2);
             }
-
-            // 4. Khushu Level Points
             if ($t->khushu_level > 0) {
                 $totalPoints += $t->khushu_level;
             }
         }
 
-        // Update user's cumulative total points in the database
         $user->total_points = $totalPoints;
         $user->save();
 
-        return back()->with('success', "Today's spiritual progress saved successfully!");
+        return redirect('/my-dashboard')->with('success', "Alhamdulillah! Today's spiritual progress saved successfully. Keep watering your tree! 💧");
     }
 }

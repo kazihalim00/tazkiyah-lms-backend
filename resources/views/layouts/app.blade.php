@@ -271,10 +271,47 @@
         @if(session('success'))
             <div class="px-4 md:px-8 pt-4 md:pt-6">
                 <div
-                    class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded shadow-sm font-semibold">
+                    class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded shadow-sm font-semibold relative overflow-hidden z-50">
                     {{ session('success') }}
                 </div>
             </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    // Set duration for the watering effect (3 seconds)
+                    var duration = 3 * 1000;
+                    var animationEnd = Date.now() + duration;
+
+                    // Create custom shapes for water drops and sparkles using emojis
+                    var waterDrop = confetti.shapeFromText({ text: '💧', scalar: 2 });
+                    var sparkle = confetti.shapeFromText({ text: '✨', scalar: 2 });
+
+                    // Run the animation in intervals to create a rain/watering effect
+                    var interval = setInterval(function () {
+                        var timeLeft = animationEnd - Date.now();
+
+                        // Stop the animation when time is up
+                        if (timeLeft <= 0) {
+                            return clearInterval(interval);
+                        }
+
+                        // Calculate particle count based on remaining time
+                        var particleCount = 15 * (timeLeft / duration);
+
+                        // Fire the confetti from the top center of the screen
+                        confetti({
+                            particleCount: particleCount,
+                            angle: 270,                  // Rain downwards
+                            spread: 80,                  // Spread across the screen
+                            origin: { x: 0.5, y: -0.1 }, // Start slightly above the visible screen
+                            shapes: [waterDrop, sparkle], // Use the custom emojis
+                            gravity: 1.2,                // Fall speed
+                            scalar: 1.5                  // Size of the emojis
+                        });
+                    }, 250);
+                });
+            </script>
         @endif
 
         <div class="p-4 md:p-8 flex-1 w-full max-w-full overflow-x-hidden">

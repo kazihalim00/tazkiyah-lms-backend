@@ -4,60 +4,42 @@
 
 @section('content')
     @php
-        // User মডেল থেকে ডায়নামিক ব্যাজ এবং ট্রি-স্টেজ নেওয়া হচ্ছে
         $badgeData = auth()->user()->badge;
         $badgeName = $badgeData['name'];
         $badgeIcon = $badgeData['icon'];
         $treeStage = $badgeData['tree_stage'];
 
-        // গাছের সাইজ এবং গ্লো (Glow) ডায়নামিক করার লজিক
-        $emojiSize = 35 + ($treeStage * 8);
-        $glowSpread = 5 + ($treeStage * 3);
+        // ইনলাইন স্টাইলের জন্য ডাইনামিক সাইজ (এখন ব্রাউজার ওভাররাইড করতে পারবে না)
+        $circleSize = 70 + ($treeStage * 12); // সার্কেলের সাইজ
+        $emojiSize = 40 + ($treeStage * 8);   // ইমোজির সাইজ
     @endphp
 
     <style>
-        @keyframes pulse-glow {
+        @keyframes gentle-pulse {
             0% {
-                box-shadow: 0 0
-                    {{ $glowSpread }}
-                    px rgba(74, 222, 128, 0.2);
                 transform: scale(1);
+                box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
             }
 
             50% {
-                box-shadow: 0 0
-                    {{ $glowSpread * 2.5 }}
-                    px rgba(74, 222, 128, 0.5);
                 transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
             }
 
             100% {
-                box-shadow: 0 0
-                    {{ $glowSpread }}
-                    px rgba(74, 222, 128, 0.2);
                 transform: scale(1);
+                box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
             }
         }
 
-        .tree-circle {
-            width: 100px;
-            height: 100px;
+        .animated-tree-ring {
             border-radius: 50%;
-            background: #ffffff;
+            background: linear-gradient(145deg, #ffffff, #f0fdf4);
+            border: 2px solid rgba(74, 222, 128, 0.2);
+            animation: gentle-pulse 3s infinite ease-in-out;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: pulse-glow 3s infinite ease-in-out;
-            margin: 0 auto;
-            border: 2px solid rgba(74, 222, 128, 0.15);
-        }
-
-        .tree-emoji {
-            font-size:
-                {{ $emojiSize }}
-                px;
-            transition: all 0.5s ease;
-            text-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
         }
     </style>
 
@@ -89,12 +71,31 @@
             <div class="absolute -top-10 -right-10 h-32 w-32 bg-white opacity-10 rounded-full"></div>
         </div>
 
-        <div
-            class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-center">
-            <div class="tree-circle mb-3">
-                <span class="tree-emoji">{{ $badgeIcon }}</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Spiritual Growth</h2>
+
+            <div class="flex-1 flex items-center justify-center py-4 w-full">
+                <div class="animated-tree-ring" style="width: {{ $circleSize }}px; height: {{ $circleSize }}px;">
+                    <span style="font-size: {{ $emojiSize }}px; line-height: 1; text-shadow: 0px 8px 15px rgba(0,0,0,0.1);">
+                        @php
+                            $icons = [
+                                1 => '🌱',
+                                2 => '🌿',
+                                3 => '🍃',
+                                4 => '🪴',
+                                5 => '🌳',
+                                6 => '🌳',
+                                7 => '🌲',
+                                8 => '👑'
+                            ];
+                            echo $icons[$treeStage] ?? '🌱';
+                        @endphp
+                    </span>
+                </div>
             </div>
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Spiritual Growth</h2>
+
+            <p class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase mt-auto">Stage
+                {{ $treeStage }} of 8</p>
         </div>
 
     </div>
