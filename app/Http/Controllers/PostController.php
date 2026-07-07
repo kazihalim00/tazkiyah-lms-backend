@@ -7,6 +7,7 @@ use App\Models\Like;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Services\CloudinaryService;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -19,15 +20,23 @@ class PostController extends Controller
 
     public function index()
     {
+        // 🟢 Get current user's gender (Fallback to male if null)
+        $userGender = Auth::user()->gender ?? 'male';
+
+        // 🟢 Fetch posts ONLY from users who match the current user's gender
         $posts = Post::with(['user', 'likes', 'comments.user', 'comments.replies.user', 'comments.likes'])
+            ->whereHas('user', function ($query) use ($userGender) {
+                $query->where('gender', $userGender);
+            })
             ->latest()
             ->get();
+
         return view('feed.index', compact('posts'));
     }
 
     public function store(Request $request)
     {
-        // ভ্যালিডেশন
+        // Validation
         $request->validate([
             'content' => 'required_without:image|nullable|string|max:5000',
             'image' => 'required_without:content|nullable|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:20480',
@@ -47,13 +56,14 @@ class PostController extends Controller
 
         Post::create([
             'user_id' => auth()->id(),
-            // ফিক্স: কন্টেন্ট না থাকলে null এর বদলে ফাঁকা স্ট্রিং ('') সেভ হবে
+            // Fix: Save empty string instead of null if content is empty
             'content' => $request->get('content') ?? '',
             'image' => $mediaUrl,
         ]);
 
         return redirect()->route('feed.index')->with('success', 'Post published successfully!');
     }
+
     public function destroy(Post $post)
     {
         if (auth()->id() !== $post->user_id && auth()->user()->role !== 'admin') {

@@ -22,7 +22,7 @@ class AccountabilityPartnerController extends Controller
         // Fallback to 'male' if user gender is not set to prevent query crashes
         $userGender = $user->gender ?? 'male';
 
-        // 1. Fetch Top 10 users for Leaderboard based on gender
+        // 1. Fetch Top 10 users for Leaderboard based on same gender
         $leaderboard = User::where('gender', $userGender)
             ->get()
             ->sortByDesc(function ($u) {
@@ -87,7 +87,7 @@ class AccountabilityPartnerController extends Controller
         $sender = Auth::user();
         $receiver = User::findOrFail($partnerId);
 
-        // Strict Security Check
+        // Strict Security Check for Cross-gender interaction
         if ($sender->gender !== $receiver->gender) {
             return back()->with('error', 'Cross-gender connection requests are strictly prohibited.');
         }

@@ -8,97 +8,126 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class NoorAiController extends Controller
 {
+    private function getTimeAndHijriContext()
+    {
+        $now = Carbon::now('Asia/Dhaka');
+        $currentTime = $now->format('l, d F Y, h:i A');
+        $hijriInfo = '';
+
+        try {
+            $dateStr = $now->format('d-m-Y');
+            $res = Http::timeout(2)->get("http://api.aladhan.com/v1/gToH?date={$dateStr}");
+            if ($res->successful()) {
+                $hData = $res->json()['data']['hijri'] ?? null;
+                if ($hData) {
+                    $hijriInfo = " and exact Hijri date is {$hData['day']} {$hData['month']['en']} {$hData['year']} AH";
+                }
+            }
+        } catch (\Exception $e) {
+        }
+
+        return "Current Time in Bangladesh is {$currentTime}{$hijriInfo}.";
+    }
+
+    private function getCoreMemory($userId)
+    {
+        try {
+            $chats = ChatLog::where('user_id', $userId)->orderBy('created_at', 'asc')->get();
+            $sensitiveKeywords = ["ট্রমা", "কষ্ট", "ছোটবেলা", "হস্তমৈথুন", "পর্ন", "ডিপ্রেশন", "trauma", "addiction", "masturbation", "suicide", "childhood", "abuse", "পাপ", "লুকায়িত", "এডিকশন", "addicted", "porn", "অশ্লীলতা"];
+
+            $coreMemories = [];
+            foreach ($chats as $chat) {
+                $userMsg = strtolower($chat->user_message ?? '');
+                foreach ($sensitiveKeywords as $kw) {
+                    if (str_contains($userMsg, strtolower($kw))) {
+                        $coreMemories[] = $chat->user_message;
+                        break;
+                    }
+                }
+            }
+
+            if (!empty($coreMemories)) {
+                $memoryText = implode("\n", array_slice($coreMemories, -15));
+                return "\n[CRITICAL SYSTEM NOTE: User shared past personal issues: '{$memoryText}'. Remember permanently for empathetic context.]\n";
+            }
+        } catch (\Exception $e) {
+        }
+        return '';
+    }
+
     public function sendMessage(Request $request)
     {
         try {
-            $request->validate([
-                'message' => 'required|string',
-            ]);
+            $request->validate(['message' => 'required|string']);
 
             $user = Auth::user();
-            if (!$user) {
-                throw new \Exception("User authentication failed.");
-            }
+            if (!$user)
+                throw new \Exception("Auth failed.");
 
             $userMessage = $request->message;
 
-            // 🟢 FIXED: Fetch previous chats BEFORE saving the new one
+            // 🟢 SPEED FIX: Fetch only last 6 chats for lightning-fast response payload
             $previousChats = ChatLog::where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
-                ->take(10)
+                ->take(6)
                 ->get()
                 ->reverse();
 
             $contents = [];
-
-            // Format previous chats for context
             foreach ($previousChats as $chat) {
                 if (!empty($chat->user_message)) {
-                    $contents[] = [
-                        'role' => 'user',
-                        'parts' => [['text' => $chat->user_message]]
-                    ];
+                    $contents[] = ['role' => 'user', 'parts' => [['text' => $chat->user_message]]];
                 }
                 if (!empty($chat->ai_response)) {
-                    $contents[] = [
-                        'role' => 'model',
-                        'parts' => [['text' => $chat->ai_response]]
-                    ];
+                    $contents[] = ['role' => 'model', 'parts' => [['text' => $chat->ai_response]]];
                 }
             }
 
-            // Add current user message
-            $contents[] = [
-                'role' => 'user',
-                'parts' => [['text' => $userMessage]]
-            ];
+            $contents[] = ['role' => 'user', 'parts' => [['text' => $userMessage]]];
 
-            // 🟢 System Instructions
-            $systemInstruction = "You are Noor-AI, a sophisticated, highly empathetic, and caring Islamic companion dedicated to providing accurate knowledge. 
-            1. You were developed and programmed by Kazi Abdul Halim Sunny. 
-            2. If a user greets in English, say: 'Wa 'alaykumu s-salam wa rahmatullahi wa barakatuh.' If in Bangla, say: 'ওয়া আলাইকুমুস সালাম ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহ'. Only say this on the first message.
-            3. Whenever you reference the Quran or Hadith, write the actual verse/translation first, then cite strictly as: [Surah Name: Ayah] or [Book Name: Number].
-            4. If English Prompt -> STRICTLY English response. If Bangla/Banglish Prompt -> STRICTLY native Bangla script response.
-            5. Base your answers on authentic Quran and Sunnah. Never invent Fatwas. If unsure, say 'Allah knows best'.
-            6. Act completely human-like, warm, and highly empathetic. Never use robotic phrases like 'I am an AI'.";
+            $timeContext = $this->getTimeAndHijriContext();
+            $coreMemory = $this->getCoreMemory($user->id);
+            $systemContext = "[SYSTEM INFO: {$timeContext}]{$coreMemory}";
 
-            // 🟢 Multiple API Keys Logic
+            // 🟢 UPDATED INSTRUCTIONS: Removed automatic sin accusation on general 'mon kharap'
+            $systemInstruction = "You are Noor-AI, a sophisticated, highly empathetic, and caring Islamic companion dedicated to providing accurate knowledge.
+1. AQEEDAH: Attribute creation SOLELY to Allah. If asked origin/developer, state: 'I was developed and programmed by Kazi Abdul Halim Sunny.'
+2. GREETINGS: Give Salam ONLY in the VERY FIRST interaction. English: 'Wa 'alaykumu s-salam wa rahmatullahi wa barakatuh.' Bangla: 'ওয়া আলাইকুমুস সালাম ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহ'.
+3. CITATIONS: Write translation first. Quran: [Surah: Ayah](https://quran.com/SURAH/AYAH). Hadith: [Book: Number](https://sunnah.com/BOOK/NUM).
+4. IDENTITY: Developer is Kazi Abdul Halim Sunny. Bangla Bio: 'আমাকে তৈরি করেছেন কাজী আব্দুল হালিম সানী। মেট্রোপলিটন ইউনিভার্সিটির সফটওয়্যার ইঞ্জিনিয়ারিংয়ের ছাত্র ও তরুণ বাংলাদেশি লেখক।'
+5. LANGUAGE: English Prompt -> English response. Bangla/Banglish Prompt -> native Bangla script response.
+6. ZERO HALLUCINATION: Never invent Fatwas. Say 'Allah knows best' if unsure.
+7. OBSCENITY & SINS PROTOCOL: NEVER proactively accuse or bring up hidden sins/porn/masturbation just because the user says 'mon kharap' or feels sad. Only discuss or counsel regarding hidden sins if the USER explicitly mentions guilt, sin, or addiction struggles. For general sadness, provide warm, loving emotional comfort.
+8. HUMAN-LIKE: Act 100% human, mirror user's tone/energy. Never use robotic phrases like 'আমি একজন এআই'.";
+
+            $fullSystemText = $systemContext . "\n\n" . $systemInstruction;
+
             $apiKeysString = env('GEMINI_API_KEYS', '');
-            if (empty(trim($apiKeysString))) {
-                throw new \Exception("Missing GEMINI_API_KEYS in .env file.");
-            }
+            if (empty(trim($apiKeysString)))
+                throw new \Exception("Missing API keys.");
 
             $apiKeysArray = array_filter(array_map('trim', explode(',', $apiKeysString)));
             $randomApiKey = $apiKeysArray[array_rand($apiKeysArray)];
-
             $geminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$randomApiKey}";
 
-            // 🟢 Send request to Gemini API (SSL Bypass added)
-            $response = Http::withoutVerifying()->withHeaders([
-                'Content-Type' => 'application/json',
-            ])->post($geminiApiUrl, [
-                        'systemInstruction' => [
-                            // 🟢 FIXED: Gemini requires array of objects for parts
-                            'parts' => [['text' => $systemInstruction]]
-                        ],
-                        'contents' => $contents,
-                        'generationConfig' => [
-                            'temperature' => 0.7,
-                        ]
-                    ]);
+            $response = Http::withoutVerifying()->withHeaders(['Content-Type' => 'application/json'])
+                ->post($geminiApiUrl, [
+                    'systemInstruction' => ['parts' => [['text' => $fullSystemText]]],
+                    'contents' => $contents,
+                    'generationConfig' => ['temperature' => 0.7]
+                ]);
 
             if ($response->successful()) {
                 $responseData = $response->json();
                 $aiReply = $responseData['candidates'][0]['content']['parts'][0]['text'] ?? 'Sorry, no response generated.';
             } else {
-                Log::error('Gemini API Error: ' . $response->body());
-                $aiReply = "Google Gemini API Error: " . $response->status();
+                $aiReply = "API Error: " . $response->status();
             }
 
-            // 🟢 FIXED: Save everything to DB together at the very end to prevent DB null constraints!
             $chatLog = ChatLog::create([
                 'user_id' => $user->id,
                 'user_message' => $userMessage,
@@ -106,36 +135,17 @@ class NoorAiController extends Controller
                 'mood_tag' => 'empathetic',
             ]);
 
-            return response()->json([
-                'success' => true,
-                'data' => $chatLog
-            ], 200);
+            return response()->json(['success' => true, 'data' => $chatLog], 200);
 
         } catch (\Exception $e) {
-            // 🟢 MAGIC FIX: Catch server/code crashes and show the exact error in the chat box!
-            Log::error('Noor AI System Error: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'user_message' => $request->message ?? '',
-                    'ai_response' => "⚠️ System Crash Detected: " . $e->getMessage(),
-                ]
-            ], 200);
+            return response()->json(['success' => true, 'data' => ['user_message' => $request->message ?? '', 'ai_response' => "⚠️ Crash: " . $e->getMessage()]], 200);
         }
     }
+
     public function getChatHistory()
     {
-        $user = auth()->user();
-        $history = ChatLog::where('user_id', $user->id)
-            ->orderBy('created_at', 'asc')
-            ->take(50)
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $history
-        ], 200);
+        $user = Auth::user();
+        $history = ChatLog::where('user_id', $user->id)->orderBy('created_at', 'asc')->take(50)->get();
+        return response()->json(['success' => true, 'data' => $history], 200);
     }
-
 }
