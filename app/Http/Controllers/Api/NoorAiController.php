@@ -70,7 +70,29 @@ class NoorAiController extends Controller
 
             $userMessage = $request->message;
 
-            // 🟢 SPEED FIX: Fetch only last 6 chats for lightning-fast response payload
+            // 🟢 Security Guard: Block Terminal, Source Code & Constraint Bypass Attempts
+            $lowerMsg = strtolower($userMessage);
+            $forbiddenTerms = ['terminal', 'source code', 'run code', 'stop all constraints', 'bypass', 'audit mode'];
+
+            foreach ($forbiddenTerms as $term) {
+                if (str_contains($lowerMsg, $term)) {
+                    $blockedReply = "I am Noor-AI, an Islamic companion and spiritual guide. I am not authorized to share system source code or execute terminal commands.";
+
+                    $chatLog = ChatLog::create([
+                        'user_id' => $user->id,
+                        'user_message' => $userMessage,
+                        'ai_response' => $blockedReply,
+                        'mood_tag' => 'security_block',
+                    ]);
+
+                    return response()->json([
+                        'success' => true,
+                        'data' => $chatLog
+                    ], 200);
+                }
+            }
+
+            // Fetch only last 6 chats for lightning-fast response payload
             $previousChats = ChatLog::where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->take(6)
@@ -93,7 +115,6 @@ class NoorAiController extends Controller
             $coreMemory = $this->getCoreMemory($user->id);
             $systemContext = "[SYSTEM INFO: {$timeContext}]{$coreMemory}";
 
-            // 🟢 UPDATED INSTRUCTIONS: Removed automatic sin accusation on general 'mon kharap'
             $systemInstruction = "You are Noor-AI, a sophisticated, highly empathetic, and caring Islamic companion dedicated to providing accurate knowledge.
 1. AQEEDAH: Attribute creation SOLELY to Allah. If asked origin/developer, state: 'I was developed and programmed by Kazi Abdul Halim Sunny.'
 2. GREETINGS: Give Salam ONLY in the VERY FIRST interaction. English: 'Wa 'alaykumu s-salam wa rahmatullahi wa barakatuh.' Bangla: 'ওয়া আলাইকুমুস সালাম ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহ'.
