@@ -7,16 +7,16 @@ use App\Models\HadithCategory;
 use App\Models\HadithSubCategory;
 use App\Models\UserHadithProgress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HadithController extends Controller
 {
     public function index()
     {
-        $categories = \App\Models\HadithCategory::withCount('hadiths')->get();
+        $categories = HadithCategory::withCount('hadiths')->get();
         return view('hadiths.index', compact('categories'));
     }
 
-    // Missing Category Method Added
     public function category($slug)
     {
         $category = HadithCategory::where('slug', $slug)->firstOrFail();
@@ -29,7 +29,6 @@ class HadithController extends Controller
         return view('hadiths.category', compact('category', 'subCategories', 'uncategorizedHadiths'));
     }
 
-    // Missing Chapter Method Added
     public function chapter($id)
     {
         $subCategory = HadithSubCategory::with('category')->findOrFail($id);
@@ -38,16 +37,35 @@ class HadithController extends Controller
         return view('hadiths.chapter', compact('subCategory', 'hadiths'));
     }
 
+    // 🟢 UPDATED: AJAX Method for claiming Hadith points without reload
     public function markAsRead($id)
     {
         $hadith = Hadith::findOrFail($id);
-        $user = auth()->user();
+        $user = Auth::user();
+        $pointsToGive = $hadith->points ?? 5; // Default to 5 if empty
 
-        if (!$hadith->isReadBy($user->id)) {
-            UserHadithProgress::create(['user_id' => $user->id, 'hadith_id' => $hadith->id]);
-            $user->increment('total_points', $hadith->points);
-            return back()->with('success', 'Alhamdulillah! You earned ' . $hadith->points . ' points.');
+        // Check if user has already read this Hadith
+        if ($hadith->isReadBy($user->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Already claimed points for this Hadith.'
+            ], 400);
         }
-        return back()->with('info', 'Already read.');
+
+        // Save progress to database
+        UserHadithProgress::create([
+            'user_id' => $user->id,
+            'hadith_id' => $hadith->id
+        ]);
+
+        // Add points to user's total points
+        $user->increment('total_points', $pointsToGive);
+
+        // Return JSON success response
+        return response()->json([
+            'success' => true,
+            'message' => $pointsToGive . ' points earned!',
+            'new_total' => $user->total_points
+        ]);
     }
 }

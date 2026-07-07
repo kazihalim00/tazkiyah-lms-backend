@@ -1,44 +1,133 @@
 @extends('layouts.app')
-
-@section('title', $subCategory->name_bn)
-@section('header_title', 'Chapter Hadiths')
+@section('title', $subCategory->name_bn ?? 'Hadith Chapter')
+@section('header_title', 'Hadith Collection')
 
 @section('content')
-    <div class="max-w-4xl mx-auto py-8 space-y-8">
+    <!-- Global Arabic Font for beautiful typography -->
+    <style>
+        @font-face {
+            font-family: 'KFGQPC Uthmanic Script';
+            src: url('https://fonts.cdnfonts.com/s/73253/KFGQPC_Uthmanic_Script_HAFS_Regular.woff') format('woff');
+        }
 
-        <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('hadiths.category', $subCategory->category->slug) }}"
-                class="text-gray-400 hover:text-indigo-600 transition">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
-                    </path>
-                </svg>
-            </a>
+        .arabic-text {
+            font-family: 'KFGQPC Uthmanic Script', Arial, sans-serif !important;
+            font-size: 42px !important;
+            line-height: 2.6 !important;
+            direction: rtl;
+            text-align: right;
+            color: #111827 !important;
+            padding: 10px 0;
+        }
+    </style>
+
+    <div class="max-w-4xl mx-auto py-8">
+        <!-- Sticky Header with Real-time Points Display -->
+        <div
+            class="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg p-6 text-white mb-8 flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-black text-gray-900">{{ $subCategory->name_bn }}</h1>
-                <p class="text-sm font-bold text-gray-400 mt-1 uppercase">{{ $subCategory->category->name_bn }}</p>
+                <h1 class="text-2xl font-bold">{{ $subCategory->name_bn ?? 'Chapter' }}</h1>
+                <p class="text-blue-100 mt-1">{{ $subCategory->category->name_bn ?? 'Category' }}</p>
+            </div>
+            <div class="bg-white/20 px-4 py-2 rounded-xl font-bold flex flex-col items-end">
+                <span class="text-xs text-blue-100 uppercase tracking-widest">Total Points</span>
+                <!-- Target ID for instant point updates -->
+                <span class="text-xl" id="nav-total-points">{{ auth()->user()->total_points }}</span>
             </div>
         </div>
 
-        @if(session('success'))
-            <div
-                class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-xl shadow-sm mb-6 font-bold flex items-center gap-3">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                {{ session('success') }}
-            </div>
-        @endif
-
-        <div class="space-y-8">
+        <div class="space-y-6">
             @forelse($hadiths as $hadith)
-                @include('partials.hadith_card', ['hadith' => $hadith])
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+
+                    <!-- Hadith Numbering & Grade -->
+                    <div class="flex justify-between items-start mb-4 border-b border-gray-50 pb-4">
+                        <span class="bg-blue-100 text-blue-700 font-black px-4 py-1.5 rounded-lg text-sm shrink-0">
+                            Hadith No: {{ $hadith->hadith_number ?? $loop->iteration }}
+                        </span>
+                        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg">
+                            {{ $hadith->grade ?? 'Sahih' }}
+                        </span>
+                    </div>
+
+                    <!-- Arabic & Bangla Texts -->
+                    <p class="arabic-text text-gray-800 text-right w-full mb-6">{{ $hadith->arabic_text }}</p>
+                    <p class="text-gray-600 text-lg leading-relaxed">{{ $hadith->bangla_text }}</p>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-gray-50">
+                        @if(!$hadith->isReadBy(auth()->id()))
+                            <!-- AJAX Point Claim Button -->
+                            <button id="btn-hadith-claim-{{ $hadith->id }}"
+                                onclick="claimHadithPoints({{ $hadith->id }}, this, {{ $hadith->points ?? 5 }})"
+                                class="text-sm font-bold text-white bg-blue-600 px-5 py-2.5 rounded-xl hover:bg-blue-700 transition flex items-center gap-2 ml-auto shadow-sm">
+                                <span>Claim {{ $hadith->points ?? 5 }} Points</span>
+                            </button>
+                        @else
+                            <!-- Already Claimed State -->
+                            <button disabled
+                                class="text-sm font-bold text-white bg-teal-500 px-5 py-2.5 rounded-xl flex items-center gap-2 ml-auto shadow-sm cursor-not-allowed">
+                                <span>{{ $hadith->points ?? 5 }} Points Earned ✅</span>
+                            </button>
+                        @endif
+                    </div>
+                </div>
             @empty
-                <div class="text-center py-12 bg-white rounded-3xl border border-gray-100">
-                    <p class="text-gray-400 font-bold">No hadiths found in this chapter.</p>
+                <div class="text-center py-10 bg-white rounded-2xl border border-gray-100">
+                    <p class="text-gray-500 font-bold">No hadiths found in this chapter.</p>
                 </div>
             @endforelse
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        const csrfToken = '{{ csrf_token() }}';
+
+        async function claimHadithPoints(hadithId, btnElement, points) {
+            // Disable button and show loading state
+            btnElement.disabled = true;
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = 'Wait... ⏳';
+            btnElement.classList.replace('bg-blue-600', 'bg-gray-400');
+
+            try {
+                // Send AJAX request
+                const response = await fetch(`/hadiths/${hadithId}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Update button UI on success
+                    btnElement.innerHTML = `${points} Points Earned ✅`;
+                    btnElement.classList.replace('bg-gray-400', 'bg-teal-500');
+                    btnElement.classList.remove('hover:bg-blue-700');
+
+                    // Update top bar points immediately without reloading
+                    const pointsDisplay = document.getElementById('nav-total-points');
+                    if (pointsDisplay) {
+                        pointsDisplay.innerText = data.new_total;
+                    }
+                } else {
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = originalText;
+                    btnElement.classList.replace('bg-gray-400', 'bg-blue-600');
+                    alert(data.message || 'Error claiming points.');
+                }
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                btnElement.disabled = false;
+                btnElement.innerHTML = originalText;
+                btnElement.classList.replace('bg-gray-400', 'bg-blue-600');
+            }
+        }
+    </script>
+@endpush

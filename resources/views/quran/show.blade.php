@@ -1,107 +1,175 @@
 @extends('layouts.app')
-
-@section('title', $surah->name_bangla)
+@section('title', $surah->name_bangla . ' - Al-Quran')
+@section('header_title', 'Surah ' . $surah->name_en)
 
 @section('content')
-    <div class="max-w-3xl mx-auto py-8 px-4">
+    <!-- Global Uthmanic Font for proper Arabic rendering -->
+    <style>
+        @font-face {
+            font-family: 'KFGQPC Uthmanic Script';
+            src: url('https://fonts.cdnfonts.com/s/73253/KFGQPC_Uthmanic_Script_HAFS_Regular.woff') format('woff');
+        }
 
-        {{-- Back Button & Title Header --}}
-        <div class="flex items-center mb-10 relative">
-            <a href="{{ route('quran.index') }}"
-                class="absolute left-0 w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition shadow-sm border border-gray-100 z-10">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
-            <h1 class="text-3xl font-black text-gray-900 w-full text-center">{{ $surah->name_bangla }}</h1>
+        .quran-text {
+            font-family: 'KFGQPC Uthmanic Script', Arial, sans-serif;
+            font-size: 2.5rem;
+            line-height: 2.5;
+            direction: rtl;
+        }
+
+        /* Smooth scrolling for the whole page to avoid jumps */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+
+    <div class="max-w-4xl mx-auto py-8">
+        <!-- Sticky Header with Total Points -->
+        <div
+            class="sticky top-0 z-50 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl shadow-lg p-6 text-white mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">{{ $surah->name_bangla }}</h1>
+                <p class="text-emerald-100 mt-1">{{ $surah->name_en }} • {{ $surah->ayahs_count }} Ayahs</p>
+            </div>
+            <div class="bg-white/20 px-4 py-2 rounded-xl font-bold flex flex-col items-end">
+                <span class="text-xs text-emerald-100 uppercase tracking-widest">Total Points</span>
+                <span class="text-xl" id="nav-total-points">{{ auth()->user()->total_points }}</span>
+            </div>
         </div>
 
-        {{-- Success Message --}}
-        @if(session('success'))
-            <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-xl shadow-sm mb-6 font-bold">
-                {{ session('success') }}
-            </div>
-        @endif
+        <div class="space-y-8">
+            <!-- Loop through ayahs related to this surah -->
+            <!-- Ensure your column names (arabic_text, bangla_text, tafsir_sadi) match your HadithBD database structure -->
+            @foreach($surah->ayahs as $ayah)
+                <div id="ayah-{{ $ayah->id }}"
+                    class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
 
-        {{-- Error Message --}}
-        @if(session('error'))
-            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-xl shadow-sm mb-6 font-bold">
-                {{ session('error') }}
-            </div>
-        @endif
+                    <div class="flex justify-between items-start gap-4">
+                        <span class="bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-lg text-sm shrink-0">
+                            {{ $surah->surah_no }}:{{ $ayah->ayah_no }}
+                        </span>
+                        <!-- Render Arabic Text -->
+                        <p class="quran-text text-gray-800 text-right w-full">{{ $ayah->arabic_text }}</p>
+                    </div>
 
-        @foreach($surah->ayahs as $ayah)
-            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm mb-6 relative">
+                    <!-- Render Translation -->
+                    <p class="text-gray-600 mt-6 text-lg">{{ $ayah->bangla_text }}</p>
 
-                {{-- Arabic Text --}}
-                <p class="text-right text-3xl md:text-4xl font-serif text-gray-800 leading-loose mb-6" dir="rtl"
-                    style="line-height: 2.2;">
-                    {{ $ayah->arabic_text }}
-                </p>
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-gray-50">
 
-                {{-- Bangla Translation --}}
-                <p class="text-gray-600 font-medium mb-6 text-lg leading-relaxed">{{ $ayah->bangla_text }}</p>
+                        <!-- Toggle Tafseer Button -->
+                        <button onclick="toggleTafseer({{ $ayah->id }})"
+                            class="text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl hover:bg-indigo-100 transition">
+                            📖 তাফসীর আস-সাদী
+                        </button>
 
-                {{-- Tafsir --}}
-                @if($ayah->tafsir)
-                    <div class="mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-100/50">
-                        <h4 class="font-bold text-amber-800 mb-2 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            তাফসীর (Tafsir)
-                        </h4>
-                        <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                            {{ $ayah->tafsir }}
+                        <!-- AJAX Point Claim Button -->
+                        <!-- AJAX Point Claim Button -->
+                        <button id="btn-claim-{{ $ayah->id }}" onclick="claimPoints({{ $ayah->id }}, this)"
+                            class="text-sm font-bold text-white bg-emerald-600 px-4 py-2 rounded-xl hover:bg-emerald-700 transition flex items-center gap-2 ml-auto shadow-sm">
+                            <span>Claim 5 Points</span>
+                        </button>
+                    </div>
+
+                    <!-- Tafseer Container (Hidden by default) -->
+                    <div id="tafseer-{{ $ayah->id }}" class="hidden mt-4 p-5 bg-amber-50 border border-amber-100 rounded-xl">
+                        <h4 class="font-bold text-amber-900 mb-2">তাফসীর আস-সাদী:</h4>
+                        <!-- Render Tafseer Text -->
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            {{ $ayah->tafsir_sadi ?? 'এই আয়াতের তাফসীর পাওয়া যায়নি।' }}
                         </p>
                     </div>
-                @endif
 
-                {{-- Actions: Tadabbur Form & Point Button --}}
-                <div class="border-t border-gray-50 pt-5 mt-2 flex flex-col md:flex-row gap-4 items-end">
-
-                    {{-- Tadabbur Form --}}
-                    <form action="{{ route('quran.tadabbur.save', $ayah->id) }}" method="POST" class="flex-grow w-full">
-                        @csrf
-                        <textarea name="tadabbur_note" rows="1"
-                            class="w-full p-3 bg-gray-50 rounded-xl text-sm border border-gray-100 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition resize-none placeholder-gray-400"
-                            placeholder="Write your Tadabbur for this Ayah..." required></textarea>
-                        <div class="mt-2 text-right">
-                            <button type="submit"
-                                class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 transition shadow-sm">
-                                Save Tadabbur
-                            </button>
-                        </div>
-                    </form>
-
-                    {{-- Point Button --}}
-                    <form action="{{ route('quran.ayah.read', $ayah->id) }}" method="POST" class="w-full md:w-auto">
-                        @csrf
-                        @if(session()->has('read_ayah_' . $ayah->id . '_' . auth()->id()))
-                            <button type="button" disabled
-                                class="w-full md:w-auto bg-gray-50 text-emerald-600 px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed border border-emerald-100">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                                5 Pts Added
-                            </button>
-                        @else
-                            <button type="submit"
-                                class="w-full md:w-auto bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 group">
-                                <svg class="w-4 h-4 opacity-70 group-hover:rotate-12 transition-transform" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Read (+5 Pts)
-                            </button>
-                        @endif
-                    </form>
                 </div>
-
-            </div>
-        @endforeach
+            @endforeach
+        </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        const csrfToken = '{{ csrf_token() }}';
+
+        // Auto-scroll to last read Ayah smoothly on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            const lastReadId = {{ $lastReadAyahId ?? 'null' }};
+            if (lastReadId) {
+                const targetAyah = document.getElementById('ayah-' + lastReadId);
+                if (targetAyah) {
+                    setTimeout(() => {
+                        targetAyah.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight the saved Ayah briefly
+                        targetAyah.classList.add('ring-2', 'ring-emerald-400', 'bg-emerald-50/50');
+                    }, 800);
+                }
+            }
+        });
+
+        // Toggles visibility of Tafseer without reloading the page
+        function toggleTafseer(ayahId) {
+            const tafseerDiv = document.getElementById('tafseer-' + ayahId);
+            tafseerDiv.classList.toggle('hidden');
+        }
+
+        // Fetch API to claim points and update UI instantly
+        async function claimPoints(ayahId, btnElement) {
+
+            // Disable button and change state to loading
+            btnElement.disabled = true;
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = 'Please wait... ⏳';
+            btnElement.classList.replace('bg-emerald-600', 'bg-gray-400');
+
+            try {
+                // Send AJAX request to claim points
+                const response = await fetch(`/quran/ayah/${ayahId}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Update button UI on success
+                    btnElement.innerHTML = '5 Points Earned ✅';
+                    btnElement.classList.replace('bg-gray-400', 'bg-teal-500');
+                    btnElement.classList.remove('hover:bg-emerald-700');
+
+                    // Update top bar total points text
+                    document.getElementById('nav-total-points').innerText = data.new_total;
+
+                    // Save this Ayah as the last read position
+                    saveLastReadPosition(ayahId);
+                } else {
+                    // Revert button UI if failed or already claimed
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = originalText;
+                    btnElement.classList.replace('bg-gray-400', 'bg-emerald-600');
+                    alert(data.message || 'Error claiming points.');
+                }
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                btnElement.disabled = false;
+                btnElement.innerHTML = originalText;
+                btnElement.classList.replace('bg-gray-400', 'bg-emerald-600');
+            }
+        }
+
+        // Send AJAX request to save last read position
+        function saveLastReadPosition(ayahId) {
+            fetch('{{ route("quran.save_last_read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ ayah_id: ayahId })
+            });
+        }
+    </script>
+@endpush

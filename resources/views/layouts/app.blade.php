@@ -20,7 +20,28 @@
             display: none !important;
         }
     </style>
-    @stack('styles')
+    <!-- 🟢 Global Uthmanic Font for ALL Arabic texts across the app -->
+    <style>
+        @font-face {
+            font-family: 'KFGQPC Uthmanic Script';
+            src: url('https://fonts.cdnfonts.com/s/73253/KFGQPC_Uthmanic_Script_HAFS_Regular.woff') format('woff');
+        }
+
+        .arabic-text {
+            font-family: 'KFGQPC Uthmanic Script', serif !important;
+            font-size: 38px !important;
+            /* Forced Large Size */
+            line-height: 2.4 !important;
+            /* Spacing between lines */
+            direction: rtl !important;
+            text-align: right !important;
+            color: #111827 !important;
+            /* Deep black text */
+            padding-bottom: 15px !important;
+        }
+    </style>
+</head> <!-- Ensure it is placed right before this closing tag -->
+@stack('styles')
 </head>
 
 <body class="bg-gray-50 min-h-screen flex" x-data="{ mobileMenuOpen: false }">

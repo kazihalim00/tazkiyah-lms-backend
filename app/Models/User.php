@@ -23,6 +23,7 @@ class User extends Authenticatable
         'timezone',
         'gender',
         'total_points',
+        'last_read_ayah_id'
     ];
 
     protected $hidden = [

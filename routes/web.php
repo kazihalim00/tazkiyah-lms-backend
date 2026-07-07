@@ -238,12 +238,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/web-chat', [\App\Http\Controllers\Api\NoorAiController::class, 'sendMessage'])->name('web.chat');
     Route::get('/web-chat/history', [\App\Http\Controllers\Api\NoorAiController::class, 'getChatHistory'])->name('web.chat.history');
-    // Quran Routes
+    // Quran Routes (Keep your existing routes)
     Route::get('/quran', [QuranController::class, 'index'])->name('quran.index');
     Route::get('/quran/surah/{id}', [QuranController::class, 'show'])->name('quran.show');
     Route::post('/quran/tadabbur/{ayahId}', [QuranController::class, 'saveTadabbur'])->name('quran.tadabbur.save');
     Route::post('/quran/ayah/{id}/read', [QuranController::class, 'markAyahAsRead'])->name('quran.ayah.read');
 
+    // 🟢 NEW: Add this route to save the last read position via AJAX
+    Route::post('/quran/save-last-read', [QuranController::class, 'saveLastRead'])->name('quran.save_last_read');
     // Hadith (User access - NO DELETE ACCESS)
     Route::get('/hadiths', [HadithController::class, 'index'])->name('hadiths.index');
     Route::get('/hadiths/chapter/{id}', [HadithController::class, 'chapter'])->name('hadiths.chapter');
