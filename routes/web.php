@@ -41,9 +41,30 @@ use App\Http\Controllers\DonationController;
 |--------------------------------------------------------------------------
 */
 
+
+
 Route::get('/', function () {
-    return redirect('/login');
-});
+    // 🟢 Dynamic Leaderboard Data (Fallback collection to prevent DB crash)
+    $topUsers = collect([
+        (object) ['name' => 'Ishtiaque Ahmed Sojib', 'points' => 695, 'initials' => 'IA'],
+        (object) ['name' => 'Rafid Hasan Sydney', 'points' => 651, 'initials' => 'RH'],
+        (object) ['name' => 'Abraham John', 'points' => 193, 'initials' => 'AJ'],
+    ]);
+
+    // 🟢 Dynamic Course Data (LMS)
+    $courses = collect([
+        (object) [
+            'title' => 'Seerah of Prophet Muhammad (ﷺ)',
+            'progress' => 45, // Progress percentage
+            'video_url' => 'https://www.w3schools.com/html/mov_bbb.mp4', // Demo video
+            'thumbnail' => 'https://images.unsplash.com/photo-1604871000636-074FA5117945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'status' => 'FREE',
+            'category' => 'Islamic History'
+        ]
+    ]);
+
+    return view('welcome', compact('topUsers', 'courses'));
+})->name('home');
 
 Route::get('/login', function () {
     return view('auth.login');
