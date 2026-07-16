@@ -35,28 +35,26 @@ use App\Http\Controllers\Admin\ModuleController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
 use App\Http\Controllers\Admin\HadithController as AdminHadithController;
 use App\Http\Controllers\DonationController;
+
 /*
 |--------------------------------------------------------------------------
 | Public & Authentication Routes
 |--------------------------------------------------------------------------
 */
 
-
-
+// Home landing page route
 Route::get('/', function () {
-    // 🟢 Dynamic Leaderboard Data (Fallback collection to prevent DB crash)
     $topUsers = collect([
         (object) ['name' => 'Ishtiaque Ahmed Sojib', 'points' => 695, 'initials' => 'IA'],
         (object) ['name' => 'Rafid Hasan Sydney', 'points' => 651, 'initials' => 'RH'],
         (object) ['name' => 'Abraham John', 'points' => 193, 'initials' => 'AJ'],
     ]);
 
-    // 🟢 Dynamic Course Data (LMS)
     $courses = collect([
         (object) [
             'title' => 'Seerah of Prophet Muhammad (ﷺ)',
-            'progress' => 45, // Progress percentage
-            'video_url' => 'https://www.w3schools.com/html/mov_bbb.mp4', // Demo video
+            'progress' => 45,
+            'video_url' => 'https://www.w3schools.com/html/mov_bbb.mp4',
             'thumbnail' => 'https://images.unsplash.com/photo-1604871000636-074FA5117945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
             'status' => 'FREE',
             'category' => 'Islamic History'
@@ -66,10 +64,12 @@ Route::get('/', function () {
     return view('welcome', compact('topUsers', 'courses'));
 })->name('home');
 
+// Login view route
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
+// Login form submission handler
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate(['email' => 'required|email', 'password' => 'required']);
     if (Auth::attempt($credentials)) {
@@ -79,10 +79,12 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['email' => 'Invalid credentials']);
 });
 
+// Register view route
 Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
 
+// Register form submission handler
 Route::post('/register', function (Request $request) {
     $request->validate([
         'name' => 'required|string|max:255',
@@ -112,6 +114,7 @@ Route::post('/register', function (Request $request) {
     return redirect('/my-dashboard');
 });
 
+// Logout handler
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -119,14 +122,16 @@ Route::post('/logout', function (Request $request) {
     return redirect('/login');
 })->name('logout');
 
+// Donation routes
 Route::get('/donate', [DonationController::class, 'index'])->name('donate.index');
 Route::post('/donate/pay', [DonationController::class, 'pay'])->name('donate.pay');
+
 /*
 |--------------------------------------------------------------------------
-| Authenticated User Routes (Protected by Auth Middleware)
+| Authenticated & Verified User Routes (Protected by Auth & Verified Middleware)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
     // Profile Routes
     Route::get('/profile', function () {
@@ -134,7 +139,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('profile');
     Route::post('/profile/update', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-    // Dashboard
+    // Dashboard Route (Requires verified email)
     Route::get('/my-dashboard', function () {
         $user = Auth::user();
         $points = $user->total_points ?? 0;
@@ -166,15 +171,10 @@ Route::middleware(['auth'])->group(function () {
                         $dailyScore += 5;
                 }
 
-                // Islamic Book (Pages) Point Calculation
                 if ($tracker->quran_pages > 0)
                     $dailyScore += ($tracker->quran_pages * 2);
-
-                // Khushu Level Point Calculation
                 if ($tracker->khushu_level > 0)
                     $dailyScore += $tracker->khushu_level;
-
-                // Quran/Hadith Bonus Points (Directly updating the graph)
                 if ($tracker->bonus_points > 0)
                     $dailyScore += $tracker->bonus_points;
             }
@@ -184,7 +184,7 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard', compact('user', 'points', 'badge', 'chartLabels', 'chartData'));
     });
 
-    // Feed & Community
+    // Feed & Community Routes
     Route::get('/feed', [PostController::class, 'index'])->name('feed.index');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::delete('/posts/{id}', [FeedController::class, 'destroy'])->name('posts.destroy');
@@ -204,7 +204,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/partner/accept/{id}', [AccountabilityPartnerController::class, 'acceptRequest'])->name('partner.accept');
     Route::post('/partner/reject/{id}', [AccountabilityPartnerController::class, 'rejectRequest'])->name('partner.reject');
 
-    // Tracker
+    // Tracker Routes
     Route::get('/tracker', function () {
         $lessons = [
             "\"Verily, in the remembrance of Allah do hearts find rest.\" (Ar-Rad: 28) - Make today count.",
@@ -252,28 +252,27 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/quiz/{id}', [QuizController::class, 'show'])->name('quizzes.show');
     Route::post('/quiz/{id}/submit', [QuizController::class, 'submit'])->name('quizzes.submit');
 
-    // Noor AI UI Route
+    // Noor AI Routes
     Route::get('/noor-ai', function () {
         return view('noor-ai');
     })->name('noor.index');
 
     Route::post('/web-chat', [\App\Http\Controllers\Api\NoorAiController::class, 'sendMessage'])->name('web.chat');
     Route::get('/web-chat/history', [\App\Http\Controllers\Api\NoorAiController::class, 'getChatHistory'])->name('web.chat.history');
-    // Quran Routes (Keep your existing routes)
+
+    // Quran Routes
     Route::get('/quran', [QuranController::class, 'index'])->name('quran.index');
     Route::get('/quran/surah/{id}', [QuranController::class, 'show'])->name('quran.show');
     Route::post('/quran/tadabbur/{ayahId}', [QuranController::class, 'saveTadabbur'])->name('quran.tadabbur.save');
     Route::post('/quran/ayah/{id}/read', [QuranController::class, 'markAyahAsRead'])->name('quran.ayah.read');
-
-    // 🟢 NEW: Add this route to save the last read position via AJAX
     Route::post('/quran/save-last-read', [QuranController::class, 'saveLastRead'])->name('quran.save_last_read');
-    // Hadith (User access - NO DELETE ACCESS)
+
+    // Hadith Routes
     Route::get('/hadiths', [HadithController::class, 'index'])->name('hadiths.index');
     Route::get('/hadiths/chapter/{id}', [HadithController::class, 'chapter'])->name('hadiths.chapter');
     Route::get('/hadiths/category/{slug}', [HadithController::class, 'category'])->name('hadiths.category');
     Route::post('/hadiths/{id}/read', [HadithController::class, 'markAsRead'])->name('hadiths.read');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -320,7 +319,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/lessons/{lesson}', [AdminLessonController::class, 'update'])->name('lessons.update');
     Route::delete('/lessons/{lesson}', [AdminLessonController::class, 'destroy'])->name('lessons.destroy');
 
-    // Admin Hadith Management (CRUD & Delete)
+    // Admin Hadith Management
     Route::get('/hadiths', [AdminHadithController::class, 'index'])->name('hadiths.index');
     Route::get('/hadiths/create', [AdminHadithController::class, 'create'])->name('hadiths.create');
     Route::post('/hadiths', [AdminHadithController::class, 'store'])->name('hadiths.store');
@@ -329,7 +328,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/hadiths/{id}', [AdminHadithController::class, 'destroy'])->name('hadiths.destroy');
 });
 
-// Database Connection Checker
+// Database Connection Checker Route
 Route::get('/check-db', function () {
     try {
         $dbName = DB::connection()->getDatabaseName();
@@ -338,3 +337,6 @@ Route::get('/check-db', function () {
         return "Connection Error: " . $e->getMessage();
     }
 });
+
+// Require authentication and verification routes
+require __DIR__ . '/auth.php';
