@@ -40,8 +40,7 @@
             padding-bottom: 15px !important;
         }
     </style>
-</head> <!-- Ensure it is placed right before this closing tag -->
-@stack('styles')
+    @stack('styles')
 </head>
 
 <body class="bg-gray-50 min-h-screen flex" x-data="{ mobileMenuOpen: false }">
@@ -49,6 +48,7 @@
     <div x-show="mobileMenuOpen" x-cloak x-transition.opacity @click="mobileMenuOpen = false"
         class="fixed inset-0 bg-black/40 z-20 md:hidden"></div>
 
+    <!-- Sidebar / Navigation -->
     <aside
         class="w-64 bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 left-0 h-full z-30 transform transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0"
         :class="{ 'translate-x-0': mobileMenuOpen }">
@@ -144,6 +144,17 @@
                 <span>Community Feed</span>
             </a>
 
+            <!-- Added Accountability Partners Link Here -->
+            <a href="{{ route('community.index') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 {{ Request::routeIs('community.*') ? 'bg-gradient-to-r from-gray-900 to-indigo-800 text-white shadow-md' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-700' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+                <span>Accountability Partners</span>
+            </a>
+
             <a href="{{ route('leaderboard.index') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 {{ Request::is('leaderboard*') ? 'bg-gradient-to-r from-gray-900 to-indigo-800 text-white shadow-md' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-700' }}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,6 +236,7 @@
     </aside>
 
     <main class="flex-1 md:ml-64 flex flex-col min-h-screen w-full">
+        <!-- Header -->
         <header
             class="bg-white border-b border-gray-100 p-4 md:px-8 flex justify-between items-center sticky top-0 z-10">
             <div class="flex items-center gap-3 min-w-0">
@@ -241,6 +253,7 @@
                 </div>
             </div>
 
+            <!-- User Dropdown -->
             <div class="relative shrink-0" x-data="{ open: false }">
                 <button @click="open = !open" class="flex items-center gap-3 hover:opacity-80 transition">
                     <div class="hidden sm:flex items-center gap-2">
@@ -289,6 +302,7 @@
             </div>
         </header>
 
+        <!-- Success Message & Confetti -->
         @if(session('success'))
             <div class="px-4 md:px-8 pt-4 md:pt-6">
                 <div
@@ -300,35 +314,28 @@
             <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
-                    // Set duration for the watering effect (3 seconds)
                     var duration = 3 * 1000;
                     var animationEnd = Date.now() + duration;
 
-                    // Create custom shapes for water drops and sparkles using emojis
                     var waterDrop = confetti.shapeFromText({ text: '💧', scalar: 2 });
                     var sparkle = confetti.shapeFromText({ text: '✨', scalar: 2 });
 
-                    // Run the animation in intervals to create a rain/watering effect
                     var interval = setInterval(function () {
                         var timeLeft = animationEnd - Date.now();
-
-                        // Stop the animation when time is up
                         if (timeLeft <= 0) {
                             return clearInterval(interval);
                         }
 
-                        // Calculate particle count based on remaining time
                         var particleCount = 15 * (timeLeft / duration);
 
-                        // Fire the confetti from the top center of the screen
                         confetti({
                             particleCount: particleCount,
-                            angle: 270,                  // Rain downwards
-                            spread: 80,                  // Spread across the screen
-                            origin: { x: 0.5, y: -0.1 }, // Start slightly above the visible screen
-                            shapes: [waterDrop, sparkle], // Use the custom emojis
-                            gravity: 1.2,                // Fall speed
-                            scalar: 1.5                  // Size of the emojis
+                            angle: 270,
+                            spread: 80,
+                            origin: { x: 0.5, y: -0.1 },
+                            shapes: [waterDrop, sparkle],
+                            gravity: 1.2,
+                            scalar: 1.5
                         });
                     }, 250);
                 });
