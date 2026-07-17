@@ -108,7 +108,7 @@ Route::post('/register', function (Request $request) {
         'role' => 'user',
         'is_admin' => 0,
         'image' => $imagePath,
-        'gender' => $request->gender,
+        'gender' => $request->gender, // <--- Fixed: Saving the selected gender properly
         'total_points' => 0,
     ]);
 
