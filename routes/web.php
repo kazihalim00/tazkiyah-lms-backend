@@ -72,10 +72,12 @@ Route::get('/login', function () {
 // Login form submission handler
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate(['email' => 'required|email', 'password' => 'required']);
+
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-        return redirect()->intended('/my-dashboard');
+        return redirect()->intended('/my-dashboard'); // Redirects to intended or fallback dashboard
     }
+
     return back()->withErrors(['email' => 'Invalid credentials']);
 });
 
@@ -139,7 +141,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('profile');
     Route::post('/profile/update', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-    // Dashboard Route (Requires verified email)
+    // Dashboard Route (Added name('dashboard') to fix the 404 issue)
     Route::get('/my-dashboard', function () {
         $user = Auth::user();
         $points = $user->total_points ?? 0;
@@ -165,6 +167,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     elseif ($tracker->$prayer === 'qada')
                         $dailyScore += 2;
                 }
+
                 $deeds = ['morning_adhkar', 'evening_adhkar', 'tahajjud', 'witr', 'sadaqah', 'duwa'];
                 foreach ($deeds as $deed) {
                     if ($tracker->$deed == 1)
@@ -182,7 +185,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         return view('dashboard', compact('user', 'points', 'badge', 'chartLabels', 'chartData'));
-    });
+    })->name('dashboard'); // <--- Fixed here to resolve 404 Error
 
     // Feed & Community Routes
     Route::get('/feed', [PostController::class, 'index'])->name('feed.index');
